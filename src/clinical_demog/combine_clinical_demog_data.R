@@ -59,5 +59,7 @@ variable_legend <- read_delim(
 
 combined_df <- bind_rows(controls, fallers)
 
-saveRDS(combined_df, "data/clinical_demog_data_combined.rds")
-saveRDS(variable_legend, "data/clinical_demog_variable_legend.rds")
+col_names <- colnames(combined_df)
+
+# saveRDS(combined_df, "data/clinical_demog_data_combined.rds")
+# saveRDS(variable_legend, "data/clinical_demog_variable_legend.rds")
