@@ -61,5 +61,5 @@ combined_df <- bind_rows(controls, fallers)
 
 col_names <- colnames(combined_df)
 
-# saveRDS(combined_df, "data/clinical_demog_data_combined.rds")
-# saveRDS(variable_legend, "data/clinical_demog_variable_legend.rds")
+saveRDS(combined_df, "data/clinical_demog_data_combined.rds")
+saveRDS(variable_legend, "data/clinical_demog_variable_legend.rds")
