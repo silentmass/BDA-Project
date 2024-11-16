@@ -15,6 +15,47 @@ df <- df %>%
   ), NA)))
 
 
+# An example how to approach column type conversion
+
+# An example how to convert column types
+convert_special_numeric <- function(df, col_name, value_mappings = list("at least 2" = "2")) {
+  # Convert column name to symbol for tidy evaluation
+  col_sym <- sym(col_name)
+  
+  # Create case_when statements dynamically from the mappings
+  cases <- lapply(names(value_mappings), function(key) {
+    quo(!!sym(col_name) == !!key ~ !!value_mappings[[key]])
+  })
+  
+  # Add the default case
+  cases[[length(cases) + 1]] <- quo(TRUE ~ !!sym(col_name))
+  
+  df[!is.na(df[[col_name]]), ] %>%
+    mutate(
+      !!col_sym := case_when(!!!cases)
+    ) %>%
+    mutate(
+      !!col_sym := as.numeric(!!col_sym)
+    )
+}
+
+# List column types
+sapply(df, class)
+
+col_name <- "Year Fall"
+
+# List column unique values
+unique(df[sym(col_name)])
+
+# Example usage:
+mappings <- list(
+  "at least 2" = "2",
+  "more than 3" = "3",
+  "about 5" = "5"
+)
+result <- convert_special_numeric(df, col_name, mappings)
+
+
 # Calculate and visualise NA value counts
 
 na_counts_col <- data.frame(
