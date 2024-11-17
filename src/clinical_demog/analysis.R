@@ -1,5 +1,26 @@
-install.packages("brms")
-library(brms)
+if (!require(tidybayes)) {
+  install.packages("tidybayes")
+  library(tidybayes)
+}
+
+if (!require(brms)) {
+  install.packages("brms")
+  library(brms)
+}
+
+if(!require(cmdstanr)){
+  install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+  library(cmdstanr)
+}
+
+cmdstan_installed <- function(){
+  res <- try(out <- cmdstanr::cmdstan_path(), silent = TRUE)
+  !inherits(res, "try-error")
+}
+
+if(!cmdstan_installed()){
+  install_cmdstan()
+}
 
 data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
