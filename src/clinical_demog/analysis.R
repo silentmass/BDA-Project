@@ -25,13 +25,10 @@ if(!cmdstan_installed()){
 data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
 
-#tässä on ensimmäinen malli, ei näytä toimivan, eli formulaa pitää muuttaa. 
-#nyt siinä on vain yksi parametri (AGE), jolla ei summaryn perusteella ole vaikutusta
-#periaatteessa olisi helppo tehdä kaksi eri mallia samoilla parametreilla: 
-#toinen pooled ja toinen hierarchical
+#otin nyt malliin parametreja, joilla näytti plotin perusteella olevan vaikutusta
 fall_pooled_formula <- bf(
-  FALLER | trials(1) ~ 1 + AGE,
-  family = binomial()
+  YEAR_FALL ~ 1 + MMSE + TUG + EFI_EXEC_FUNC_INDEX + GCS_NEUROTRAX,
+  family = "gaussian"
   )
 
 fall_pooled_fit <- brm(
@@ -40,3 +37,21 @@ fall_pooled_fit <- brm(
 )
 
 summary(fall_pooled_fit)
+pp_check(fall_pooled_fit)
+
+
+plot(data$AGE, data$FALLER)
+plot(data$EFI_EXEC_FUNC_INDEX, data$FALLER)
+plot(data$GCS_NEUROTRAX, data$FALLER)
+plot(data$SIX_MONTHS_FALL, data$FALLER)
+plot(data$YEAR_FALL, data$FALLER)
+plot(data$ABC_TOTAL_PERCENT, data$YEAR_FALL)
+plot(data$AGE, data$YEAR_FALL)
+plot(data$EFI_EXEC_FUNC_INDEX, data$YEAR_FALL)
+plot(data$GCS_NEUROTRAX, data$YEAR_FALL)
+plot(data$SF36, data$YEAR_FALL)
+plot(data$DGI, data$YEAR_FALL)
+plot(data$BERG, data$YEAR_FALL)
+plot(data$MMSE, data$YEAR_FALL)
+plot(data$FSST, data$FALLER)
+plot(data$TUG, data$YEAR_FALL)
