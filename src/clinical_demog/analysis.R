@@ -1,3 +1,5 @@
+# Load packages and set theme ----
+
 if (!require(tidybayes)) {
   install.packages("tidybayes")
   library(tidybayes)
@@ -37,14 +39,33 @@ if(!cmdstan_installed()){
   install_cmdstan()
 }
 
+ggplot2::theme_set(ggplot2::theme_minimal())
+
+
+# Source helper functions ----
+
+source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
+source("src/clinical_demog/utils/analysis_helper_functions.R")
+
+
+# Load and preview data ----
+
 data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
+names(data)
+
+# BMRS fit models and view summaries and plots ----
 
 #otin nyt malliin parametreja, joilla näytti plotin perusteella olevan vaikutusta
-fall_pooled_formula <- bf(
-  YEAR_FALL ~ 1 + MMSE + TUG + EFI_EXEC_FUNC_INDEX + GCS_NEUROTRAX,
-  family = "gaussian"
-  )
+fall_pooled_formula <- bf(YEAR_FALL ~ 1 +
+                            MMSE +
+                            TUG +
+                            EFI_EXEC_FUNC_INDEX +
+                            GCS_NEUROTRAX,
+                          family = "gaussian")
+
+# Show default priors
+get_prior(fall_pooled_formula, data = data)
 
 fall_pooled_fit <- brm(
   formula = fall_pooled_formula,
@@ -53,18 +74,16 @@ fall_pooled_fit <- brm(
 
 summary(fall_pooled_fit)
 
-
-source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
-source("src/clinical_demog/utils/analysis_helper_functions.R")
-
-# Generate diagnostic plots
-plot_mcmc_diagnostics(fall_pooled_fit)
-
-# Check convergence metrics
-check_convergence(fall_pooled_fit)
-
+# Create default density plot
 pp_check(fall_pooled_fit)
 
+# Generate diagnostic plots
+# plot_mcmc_diagnostics(fall_pooled_fit)
+
+# Check convergence metrics
+# check_convergence(fall_pooled_fit)
+
+# Plot data variables ----
 
 plot(data$AGE, data$FALLER)
 plot(data$EFI_EXEC_FUNC_INDEX, data$FALLER)
