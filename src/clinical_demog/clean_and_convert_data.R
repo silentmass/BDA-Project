@@ -1,6 +1,17 @@
-library(dplyr)
-library(ggplot2)
-library(tidyr)
+if (!require(dplyr)) {
+  install.packages(dplyr)
+  library(dplyr)
+}
+
+if (!require(ggplot2)) {
+  install.packages(ggplot2)
+  library(ggplot2)
+}
+
+if (!require(tidyr)) {
+  install.packages(tidyr)
+  library(tidyr)
+}
 
 # Read combined data
 df <- readRDS("~/BDA Project/data/clinical_demog_data_combined.rds")

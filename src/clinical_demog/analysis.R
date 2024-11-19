@@ -8,6 +8,21 @@ if (!require(brms)) {
   library(brms)
 }
 
+if (!require(bayesplot)) {
+  install.packages("bayesplot")
+  library(bayesplot)
+}
+
+if (!require(ggplot2)) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+
+if (!require(patchwork)) {
+  install.packages("patchwork")
+  library(patchwork)
+}
+
 if(!require(cmdstanr)){
   install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
   library(cmdstanr)
@@ -40,3 +55,12 @@ fall_pooled_fit <- brm(
 )
 
 summary(fall_pooled_fit)
+
+source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
+source("src/clinical_demog/utils/analysis_helper_functions.R")
+
+# Generate diagnostic plots
+plot_mcmc_diagnostics(fall_pooled_fit)
+
+# Check convergence metrics
+check_convergence(fall_pooled_fit)
