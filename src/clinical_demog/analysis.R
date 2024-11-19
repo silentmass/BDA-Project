@@ -20,6 +20,11 @@ if (!require(ggplot2)) {
   library(ggplot2)
 }
 
+if (!require(pROC)) {
+  install.packages("pROC")
+  library(pROC)
+}
+
 if (!require(patchwork)) {
   install.packages("patchwork")
   library(patchwork)
@@ -76,6 +81,67 @@ summary(fall_pooled_fit)
 
 # Create default density plot
 pp_check(fall_pooled_fit)
+
+
+# Classify subjects ----
+
+fall_class_formula <- bf(FALLER ~ 1 +
+                           BERG +
+                           BASE_VELOCITY +
+                           S3_VELOCITY,
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
+  
+  # Velocity measures: both directions possible but likely small effect
+  prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+
+# Get predicted probabilities
+predictions <- posterior_predict(fall_class_fit)
+pred_probs <- colMeans(predictions)
+
+# ROC curve
+roc_obj <- roc(data$FALLER, pred_probs)
+roc_plot <- ggroc(roc_obj) +
+  labs(title = "ROC Curve for Fall Classification",
+       subtitle = paste("AUC =", round(auc(roc_obj), 3))) +
+  theme_minimal()
+
+# Confusion matrix at 0.5 threshold
+pred_class <- ifelse(pred_probs > 0.5, 1, 0)
+conf_mat <- table(Predicted = pred_class, Actual = data$FALLER)
+
+# Metrics
+sensitivity <- conf_mat[2,2] / sum(conf_mat[,2])
+specificity <- conf_mat[1,1] / sum(conf_mat[,1])
+accuracy <- sum(diag(conf_mat)) / sum(conf_mat)
+
+# Plot results
+print(roc_plot)
+print("Confusion Matrix:")
+print(conf_mat)
+print(paste("Sensitivity:", round(sensitivity, 3)))
+print(paste("Specificity:", round(specificity, 3)))
+print(paste("Accuracy:", round(accuracy, 3)))
 
 # Generate diagnostic plots
 # plot_mcmc_diagnostics(fall_pooled_fit)
