@@ -52,7 +52,7 @@ fall_pooled_fit <- brm(
 )
 
 summary(fall_pooled_fit)
-<<<<<<< HEAD
+
 
 source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
 source("src/clinical_demog/utils/analysis_helper_functions.R")
@@ -62,7 +62,7 @@ plot_mcmc_diagnostics(fall_pooled_fit)
 
 # Check convergence metrics
 check_convergence(fall_pooled_fit)
-=======
+
 pp_check(fall_pooled_fit)
 
 
@@ -81,4 +81,4 @@ plot(data$BERG, data$YEAR_FALL)
 plot(data$MMSE, data$YEAR_FALL)
 plot(data$FSST, data$FALLER)
 plot(data$TUG, data$YEAR_FALL)
->>>>>>> b970ca60e76712fa1a2b4ba1086e921cc361e520
+
