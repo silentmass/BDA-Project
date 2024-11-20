@@ -84,10 +84,11 @@ pp_check(fall_pooled_fit)
 
 
 # Classify subjects ----
-
+#BERG-ABC-TUG ----
 fall_class_formula <- bf(FALLER ~ 1 +
-                           BERG,
-                         ABC,
+                           BERG +
+                         ABC_TOTAL_PERCENT +
+                         TUG,
                          family = "bernoulli")
 
 get_prior(fall_class_formula, data = data)
@@ -95,11 +96,12 @@ get_prior(fall_class_formula, data = data)
 fall_class_priors <- c(
   # Intercept: weakly informative prior
   prior(student_t(3, 0, 2.5), class = "Intercept"),
-  prior(student_t(), class = "Intercept"),
+ 
   
   # BERG: negative association with falls (higher score = better balance)
   prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
-  prior(lognormal(0, 1), class = "b", coef = "ABC")
+  prior(lognormal(0, 1), class = "b", coef = "ABC_TOTAL_PERCENT"),
+  prior(lognormal(0, 1), class = "b", coef = "TUG")
   
   # Velocity measures: both directions possible but likely small effect
  # prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
@@ -115,7 +117,73 @@ fall_class_fit <- brm(
 
 # Posterior predictive check
 pp_check(fall_class_fit)
+#----
+#BERG only ----
+fall_class_formula <- bf(FALLER ~ 1 +
+                           BERG,
+                           
+                         family = "bernoulli")
 
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(-1, 1), class = "b", coef = "BERG")
+
+  
+  # Velocity measures: both directions possible but likely small effect
+  # prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  #  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+#depression----
+fall_class_formula <- bf(FALLER ~ 1 +
+                           GDS + GCS_NEUROTRAX,
+                         
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(0, 1), class = "b", coef = "GDS"),
+  prior(normal(0, 1), class = "b", coef = "GCS_NEUROTRAX")
+  
+  
+  # Velocity measures: both directions possible but likely small effect
+  # prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  #  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+summary(fall_class_fit)
 # Get predicted probabilities
 predictions <- posterior_predict(fall_class_fit)
 pred_probs <- colMeans(predictions)
