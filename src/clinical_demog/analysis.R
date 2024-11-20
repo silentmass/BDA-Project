@@ -236,3 +236,53 @@ plot(data$MMSE, data$YEAR_FALL)
 plot(data$FSST, data$FALLER)
 plot(data$TUG, data$YEAR_FALL)
 
+## All variables: 
+
+
+fall_class_formula <- bf(FALLER ~ 1 +GDS +
+                           AGE + GCS_NEUROTRAX + EFI_EXEC_FUNC_INDEX + GENDER + 
+                           ABC_TOTAL_PERCENT+ SF36 + MMSE + MOCA + FAB + 
+                           TUG + FSST + BERG + DGI + TMT_A+ TMT_B,
+                         
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(normal(0,10), class = "Intercept"),
+  
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(0, 10), class = "b", coef = "GDS"),
+  prior(normal(0, 10), class = "b", coef = "GCS_NEUROTRAX"),
+  prior(normal(0, 10), class = "b", coef = "AGE"),
+  prior(normal(0, 10), class = "b", coef = "EFI_EXEC_FUNC_INDEX"),
+  prior(normal(0, 10), class = "b", coef = "GENDER"),
+  prior(normal(0, 10), class = "b", coef = "ABC_TOTAL_PERCENT"),
+  prior(normal(0, 10), class = "b", coef = "SF36"),
+  prior(normal(0, 10), class = "b", coef = "MMSE"),
+  prior(normal(0, 10), class = "b", coef = "MOCA"),
+  prior(normal(0, 10), class = "b", coef = "FAB"),
+  prior(normal(0, 10), class = "b", coef = "TUG"),
+  prior(normal(0, 10), class = "b", coef = "FSST"),
+  prior(normal(0, 10), class = "b", coef = "BERG"),
+  prior(normal(0, 10), class = "b", coef = "DGI"),
+  prior(normal(0, 10), class = "b", coef = "TMT_A"),
+  prior(normal(0, 10), class = "b", coef = "TMT_B")
+
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+summary(fall_class_fit)
+# Get predicted probabilities
