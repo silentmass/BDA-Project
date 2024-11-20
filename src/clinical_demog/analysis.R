@@ -86,9 +86,8 @@ pp_check(fall_pooled_fit)
 # Classify subjects ----
 
 fall_class_formula <- bf(FALLER ~ 1 +
-                           BERG +
-                           BASE_VELOCITY +
-                           S3_VELOCITY,
+                           BERG,
+                         ABC,
                          family = "bernoulli")
 
 get_prior(fall_class_formula, data = data)
@@ -96,13 +95,15 @@ get_prior(fall_class_formula, data = data)
 fall_class_priors <- c(
   # Intercept: weakly informative prior
   prior(student_t(3, 0, 2.5), class = "Intercept"),
+  prior(student_t(), class = "Intercept"),
   
   # BERG: negative association with falls (higher score = better balance)
   prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
+  prior(lognormal(0, 1), class = "b", coef = "ABC")
   
   # Velocity measures: both directions possible but likely small effect
-  prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
-  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+ # prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
+#  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
 )
 
 fall_class_fit <- brm(
