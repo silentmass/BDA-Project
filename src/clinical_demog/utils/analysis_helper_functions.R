@@ -36,3 +36,56 @@ check_convergence <- function(model) {
     cat("\nNo major convergence issues detected.\n")
   }
 }
+
+evaluate_fall_model <- function(model, data, threshold = 0.5) {
+  # Get predictions
+  predictions <- posterior_predict(model)
+  pred_probs <- colMeans(predictions)
+  
+  # ROC curve
+  roc_obj <- roc(data$FALLER, pred_probs)
+  roc_plot <- ggroc(roc_obj) +
+    labs(title = "ROC Curve for Fall Classification",
+         subtitle = paste("AUC =", round(auc(roc_obj), 3))) +
+    theme_minimal()
+  
+  # Confusion matrix
+  pred_class <- ifelse(pred_probs > threshold, 1, 0)
+  conf_mat <- table(Predicted = pred_class, Actual = data$FALLER)
+  
+  # Calculate metrics
+  sensitivity <- conf_mat[2,2] / sum(conf_mat[,2])
+  specificity <- conf_mat[1,1] / sum(conf_mat[,1])
+  accuracy <- sum(diag(conf_mat)) / sum(conf_mat)
+  
+  # Return results as list
+  return(list(
+    roc_plot = roc_plot,
+    confusion_matrix = conf_mat,
+    metrics = list(
+      sensitivity = round(sensitivity, 3),
+      specificity = round(specificity, 3),
+      accuracy = round(accuracy, 3),
+      auc = round(auc(roc_obj), 3)
+    )
+  ))
+}
+
+print_fall_results <- function(results) {
+  cat("\n=== Fall Classification Model Results ===\n\n")
+  
+  # Print metrics
+  cat("Performance Metrics:\n")
+  cat(sprintf("Sensitivity: %.3f\n", results$metrics$sensitivity))
+  cat(sprintf("Specificity: %.3f\n", results$metrics$specificity))
+  cat(sprintf("Accuracy: %.3f\n", results$metrics$accuracy))
+  cat(sprintf("AUC: %.3f\n\n", results$metrics$auc))
+  
+  # Print confusion matrix
+  cat("Confusion Matrix:\n")
+  print(results$confusion_matrix)
+  cat("\n")
+  
+  # Print ROC plot
+  print(results$roc_plot)
+}

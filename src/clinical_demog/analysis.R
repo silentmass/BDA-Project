@@ -59,9 +59,30 @@ data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
 names(data)
 
+# Plot data variables ----
+
+# plot(data$AGE, data$FALLER)
+# plot(data$EFI_EXEC_FUNC_INDEX, data$FALLER)
+# plot(data$GCS_NEUROTRAX, data$FALLER)
+# plot(data$SIX_MONTHS_FALL, data$FALLER)
+# plot(data$YEAR_FALL, data$FALLER)
+# plot(data$ABC_TOTAL_PERCENT, data$YEAR_FALL)
+# plot(data$AGE, data$YEAR_FALL)
+# plot(data$EFI_EXEC_FUNC_INDEX, data$YEAR_FALL)
+# plot(data$GCS_NEUROTRAX, data$YEAR_FALL)
+# plot(data$SF36, data$YEAR_FALL)
+# plot(data$DGI, data$YEAR_FALL)
+# plot(data$BERG, data$YEAR_FALL)
+# plot(data$MMSE, data$YEAR_FALL)
+# plot(data$FSST, data$FALLER)
+# plot(data$TUG, data$YEAR_FALL)
+# plot(data$PASE, data$YEAR_FALL)
+# plot(data$S3_VELOCITY, data$YEAR_FALL)
+# plot(data$BASE_VELOCITY, data$YEAR_FALL)
+
 # BMRS fit models and view summaries and plots ----
 
-#otin nyt malliin parametreja, joilla näytti plotin perusteella olevan vaikutusta
+# otin nyt malliin parametreja, joilla näytti plotin perusteella olevan vaikutusta
 fall_pooled_formula <- bf(YEAR_FALL ~ 1 +
                             MMSE +
                             TUG +
@@ -83,8 +104,10 @@ summary(fall_pooled_fit)
 pp_check(fall_pooled_fit)
 
 
-# Classify subjects ----
-#BERG-ABC-TUG ----
+#### Classify subjects
+
+
+######## BERG-ABC-TUG ----
 fall_class_formula <- bf(FALLER ~ 1 +
                            BERG +
                          ABC_TOTAL_PERCENT +
@@ -117,8 +140,9 @@ fall_class_fit <- brm(
 
 # Posterior predictive check
 pp_check(fall_class_fit)
-#----
-#---- berg + velocities
+
+
+######## berg + velocities ----
 fall_class_formula <- bf(FALLER ~ 1 +
                            BERG +
                          S3_VELOCITY +
@@ -152,8 +176,7 @@ fall_class_fit <- brm(
 pp_check(fall_class_fit)
 
 
-#----
-#BERG only ----
+######## BERG only ----
 fall_class_formula <- bf(FALLER ~ 1 +
                            BERG,
                            
@@ -184,8 +207,9 @@ fall_class_fit <- brm(
 
 # Posterior predictive check
 pp_check(fall_class_fit)
-#----
-#depression----
+
+
+######## depression ----
 fall_class_formula <- bf(FALLER ~ 1 +
                            GDS + GCS_NEUROTRAX,
                          
@@ -217,8 +241,9 @@ fall_class_fit <- brm(
 
 # Posterior predictive check
 pp_check(fall_class_fit)
-#----
-#----depression+berg+velocity
+
+
+######## depression+berg+velocity ----
 fall_class_formula <- bf(FALLER ~ 1 +
                            GDS + GCS_NEUROTRAX + BERG + 
                            BASE_VELOCITY + S3_VELOCITY,
@@ -247,65 +272,16 @@ fall_class_fit <- brm(
   prior = fall_class_priors
 )
 
-# Posterior predictive check
 pp_check(fall_class_fit)
-#----
-summary(fall_class_fit)
-# Get predicted probabilities
-predictions <- posterior_predict(fall_class_fit)
-pred_probs <- colMeans(predictions)
 
-# ROC curve
-roc_obj <- roc(data$FALLER, pred_probs)
-roc_plot <- ggroc(roc_obj) +
-  labs(title = "ROC Curve for Fall Classification",
-       subtitle = paste("AUC =", round(auc(roc_obj), 3))) +
-  theme_minimal()
+# results <- evaluate_fall_model(fall_class_fit, data)
+# print_fall_results(results)
 
-# Confusion matrix at 0.5 threshold
-pred_class <- ifelse(pred_probs > 0.5, 1, 0)
-conf_mat <- table(Predicted = pred_class, Actual = data$FALLER)
-
-# Metrics
-sensitivity <- conf_mat[2,2] / sum(conf_mat[,2])
-specificity <- conf_mat[1,1] / sum(conf_mat[,1])
-accuracy <- sum(diag(conf_mat)) / sum(conf_mat)
-
-# Plot results
-print(roc_plot)
-print("Confusion Matrix:")
-print(conf_mat)
-print(paste("Sensitivity:", round(sensitivity, 3)))
-print(paste("Specificity:", round(specificity, 3)))
-print(paste("Accuracy:", round(accuracy, 3)))
-
-# Generate diagnostic plots
 # plot_mcmc_diagnostics(fall_pooled_fit)
-
-# Check convergence metrics
 # check_convergence(fall_pooled_fit)
 
-# Plot data variables ----
 
-plot(data$AGE, data$FALLER)
-plot(data$EFI_EXEC_FUNC_INDEX, data$FALLER)
-plot(data$GCS_NEUROTRAX, data$FALLER)
-plot(data$SIX_MONTHS_FALL, data$FALLER)
-plot(data$YEAR_FALL, data$FALLER)
-plot(data$ABC_TOTAL_PERCENT, data$YEAR_FALL)
-plot(data$AGE, data$YEAR_FALL)
-plot(data$EFI_EXEC_FUNC_INDEX, data$YEAR_FALL)
-plot(data$GCS_NEUROTRAX, data$YEAR_FALL)
-plot(data$SF36, data$YEAR_FALL)
-plot(data$DGI, data$YEAR_FALL)
-plot(data$BERG, data$YEAR_FALL)
-plot(data$MMSE, data$YEAR_FALL)
-plot(data$FSST, data$FALLER)
-plot(data$TUG, data$YEAR_FALL)
-plot(data$PASE, data$YEAR_FALL)
-plot(data$S3_VELOCITY, data$YEAR_FALL)
-plot(data$BASE_VELOCITY, data$YEAR_FALL)
-## All variables:---- 
+# ++++++++++++ All variables: ---- 
 
 
 fall_class_formula <- bf(FALLER ~ 1 +GDS +
@@ -354,9 +330,11 @@ fall_class_fit <- brm(
 
 # Posterior predictive check
 pp_check(fall_class_fit)
-#----
+
+
+# ++++++++++++ Get predicted probabilities ----
 summary(fall_class_fit)
-# Get predicted probabilities
+
 
 posterior <- as_draws_df(fall_class_fit)
 mcmc_areas(
