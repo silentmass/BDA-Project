@@ -311,7 +311,7 @@ plot(data$BASE_VELOCITY, data$YEAR_FALL)
 fall_class_formula <- bf(FALLER ~ 1 +GDS +
                            AGE + GCS_NEUROTRAX + EFI_EXEC_FUNC_INDEX + GENDER + 
                            ABC_TOTAL_PERCENT+ SF36 + MMSE + MOCA + FAB + 
-                           TUG + FSST + BERG + DGI + TMT_A+ TMT_B,
+                           TUG + FSST + BERG + DGI + TMT_A+ TMT_B + BASE_VELOCITY+ S3_VELOCITY,
                          
                          family = "bernoulli")
 
@@ -339,7 +339,9 @@ fall_class_priors <- c(
   prior(normal(0, 10), class = "b", coef = "BERG"),
   prior(normal(0, 10), class = "b", coef = "DGI"),
   prior(normal(0, 10), class = "b", coef = "TMT_A"),
-  prior(normal(0, 10), class = "b", coef = "TMT_B")
+  prior(normal(0, 10), class = "b", coef = "TMT_B"),
+  prior(normal(0, 10), class = "b", coef = "BASE_VELOCITY"),
+  prior(normal(0, 10), class = "b", coef = "S3_VELOCITY")
 
 )
 
@@ -355,3 +357,29 @@ pp_check(fall_class_fit)
 #----
 summary(fall_class_fit)
 # Get predicted probabilities
+
+posterior <- as_draws_df(fall_class_fit)
+mcmc_areas(
+  posterior,
+  pars = c('b_GDS',
+             'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+             'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
+
+
+mcmc_trace(
+  posterior,
+  pars = c('b_GDS',
+           'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+           'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
+mcmc_intervals(
+  posterior,
+  pars = c('b_GDS',
+           'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+           'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
+
