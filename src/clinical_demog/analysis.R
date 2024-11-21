@@ -80,7 +80,9 @@ names(data)
 # plot(data$S3_VELOCITY, data$YEAR_FALL)
 # plot(data$BASE_VELOCITY, data$YEAR_FALL)
 
-# BMRS fit models and view summaries and plots ----
+# Gaussian YEAR_FALL =================================
+
+# Gaussian YEAR_FALL - MMSE + TUG + EFI_EXEC_FUNC_INDEX + GCS_NEUROTRAX ----
 
 # otin nyt malliin parametreja, joilla näytti plotin perusteella olevan vaikutusta
 fall_pooled_formula <- bf(YEAR_FALL ~ 1 +
@@ -104,10 +106,10 @@ summary(fall_pooled_fit)
 pp_check(fall_pooled_fit)
 
 
-#### Classify subjects
+# Classify subjects - FALLER - Bernoulli =================================
 
 
-######## BERG-ABC-TUG ----
+######## BERG + ABC + TUG ----
 
 selected_variables <- c(
   "BERG",
@@ -153,7 +155,7 @@ fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernou
 plot_pp_check(fall_class_fit, selected_variables)
 
 
-######## Test scaling BERG variable + velocities ----
+######## BERG (scaled) + velocities ----
 
 data$BERG_std <- scale(data$BERG)[,1]
 
@@ -193,7 +195,7 @@ fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernou
 plot_pp_check(fall_class_fit, selected_variables)
 
 
-######## depression ----
+######## Depression: GDS + GCS_NEUROTRAX ----
 
 selected_variables <- c(
   "GDS",
@@ -214,7 +216,7 @@ fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernou
 plot_pp_check(fall_class_fit, selected_variables)
 
 
-######## depression+berg+velocity ----
+######## Depression + BERG + velocities ----
 
 selected_variables <- c(
   "GDS",
@@ -240,7 +242,7 @@ fall_class_fit <- brm(formula = fall_class_formula, data = data,family = bernoul
 
 plot_pp_check(fall_class_fit, selected_variables)
 
-# ++++++++++++ All variables: ----
+# All variables ----
 
 selected_variables <- c(
   "GDS",
@@ -305,7 +307,7 @@ plot_pp_check(fall_class_fit, selected_variables, variables_per_line = 5)
 
 
 
-# ++++++++++++ Get predicted probabilities ----
+# All variables: Get predicted probabilities ----
 
 summary(fall_class_fit)
 
