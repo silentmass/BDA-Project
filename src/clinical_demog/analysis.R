@@ -84,11 +84,45 @@ pp_check(fall_pooled_fit)
 
 
 # Classify subjects ----
-
+#BERG-ABC-TUG ----
 fall_class_formula <- bf(FALLER ~ 1 +
                            BERG +
-                           BASE_VELOCITY +
-                           S3_VELOCITY,
+                         ABC_TOTAL_PERCENT +
+                         TUG,
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+ 
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
+  prior(lognormal(0, 1), class = "b", coef = "ABC_TOTAL_PERCENT"),
+  prior(lognormal(0, 1), class = "b", coef = "TUG")
+  
+  # Velocity measures: both directions possible but likely small effect
+ # prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
+#  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+#---- berg + velocities
+fall_class_formula <- bf(FALLER ~ 1 +
+                           BERG +
+                         S3_VELOCITY +
+                           BASE_VELOCITY,
                          family = "bernoulli")
 
 get_prior(fall_class_formula, data = data)
@@ -97,12 +131,14 @@ fall_class_priors <- c(
   # Intercept: weakly informative prior
   prior(student_t(3, 0, 2.5), class = "Intercept"),
   
+  
   # BERG: negative association with falls (higher score = better balance)
   prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
   
+  
   # Velocity measures: both directions possible but likely small effect
-  prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
-  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+  prior(normal(-0.5, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "S3_VELOCITY")
 )
 
 fall_class_fit <- brm(
@@ -115,6 +151,106 @@ fall_class_fit <- brm(
 # Posterior predictive check
 pp_check(fall_class_fit)
 
+
+#----
+#BERG only ----
+fall_class_formula <- bf(FALLER ~ 1 +
+                           BERG,
+                           
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(-1, 1), class = "b", coef = "BERG")
+
+  
+  # Velocity measures: both directions possible but likely small effect
+  # prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  #  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+#depression----
+fall_class_formula <- bf(FALLER ~ 1 +
+                           GDS + GCS_NEUROTRAX,
+                         
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(0, 1), class = "b", coef = "GDS"),
+  prior(normal(0, 1), class = "b", coef = "GCS_NEUROTRAX")
+  
+  
+  # Velocity measures: both directions possible but likely small effect
+  # prior(normal(0, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  #  prior(normal(0, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+#----depression+berg+velocity
+fall_class_formula <- bf(FALLER ~ 1 +
+                           GDS + GCS_NEUROTRAX + BERG + 
+                           BASE_VELOCITY + S3_VELOCITY,
+                           family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  prior(normal(0, 1), class = "b", coef = "GDS"),
+  prior(normal(0, 1), class = "b", coef = "GCS_NEUROTRAX"),
+  
+  #BERG: negative association with falls (higher score = better balance)
+  prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
+  # Velocity measures: negative association (higher velocity = better balance)
+  prior(normal(-0.5, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+summary(fall_class_fit)
 # Get predicted probabilities
 predictions <- posterior_predict(fall_class_fit)
 pred_probs <- colMeans(predictions)
@@ -166,4 +302,84 @@ plot(data$BERG, data$YEAR_FALL)
 plot(data$MMSE, data$YEAR_FALL)
 plot(data$FSST, data$FALLER)
 plot(data$TUG, data$YEAR_FALL)
+plot(data$PASE, data$YEAR_FALL)
+plot(data$S3_VELOCITY, data$YEAR_FALL)
+plot(data$BASE_VELOCITY, data$YEAR_FALL)
+## All variables:---- 
+
+
+fall_class_formula <- bf(FALLER ~ 1 +GDS +
+                           AGE + GCS_NEUROTRAX + EFI_EXEC_FUNC_INDEX + GENDER + 
+                           ABC_TOTAL_PERCENT+ SF36 + MMSE + MOCA + FAB + 
+                           TUG + FSST + BERG + DGI + TMT_A+ TMT_B + BASE_VELOCITY+ S3_VELOCITY,
+                         
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(normal(0,10), class = "Intercept"),
+  
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(0, 10), class = "b", coef = "GDS"),
+  prior(normal(0, 10), class = "b", coef = "GCS_NEUROTRAX"),
+  prior(normal(0, 10), class = "b", coef = "AGE"),
+  prior(normal(0, 10), class = "b", coef = "EFI_EXEC_FUNC_INDEX"),
+  prior(normal(0, 10), class = "b", coef = "GENDER"),
+  prior(normal(0, 10), class = "b", coef = "ABC_TOTAL_PERCENT"),
+  prior(normal(0, 10), class = "b", coef = "SF36"),
+  prior(normal(0, 10), class = "b", coef = "MMSE"),
+  prior(normal(0, 10), class = "b", coef = "MOCA"),
+  prior(normal(0, 10), class = "b", coef = "FAB"),
+  prior(normal(0, 10), class = "b", coef = "TUG"),
+  prior(normal(0, 10), class = "b", coef = "FSST"),
+  prior(normal(0, 10), class = "b", coef = "BERG"),
+  prior(normal(0, 10), class = "b", coef = "DGI"),
+  prior(normal(0, 10), class = "b", coef = "TMT_A"),
+  prior(normal(0, 10), class = "b", coef = "TMT_B"),
+  prior(normal(0, 10), class = "b", coef = "BASE_VELOCITY"),
+  prior(normal(0, 10), class = "b", coef = "S3_VELOCITY")
+
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
+summary(fall_class_fit)
+# Get predicted probabilities
+
+posterior <- as_draws_df(fall_class_fit)
+mcmc_areas(
+  posterior,
+  pars = c('b_GDS',
+             'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+             'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
+
+
+mcmc_trace(
+  posterior,
+  pars = c('b_GDS',
+           'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+           'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
+mcmc_intervals(
+  posterior,
+  pars = c('b_GDS',
+           'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+           'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
 
