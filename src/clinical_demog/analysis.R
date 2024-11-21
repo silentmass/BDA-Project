@@ -134,8 +134,8 @@ fall_class_fit <- brm(
 
 pp_check(fall_class_fit) +
   ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables))) +
-  theme(plot.title = element_text(size = 8)) +
+                 format_variables(selected_variables, variables_per_line = -1))) +
+  ylim(0, 2.0) +
   theme_minimal()
 
 
@@ -166,8 +166,8 @@ fall_class_fit <- brm(
 
 pp_check(fall_class_fit) +
   ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables))) +
-  theme(plot.title = element_text(size = 8)) +
+                 format_variables(selected_variables, variables_per_line = -1))) +
+  ylim(0, 2.0) +
   theme_minimal()
 
 
@@ -196,8 +196,8 @@ fall_class_fit <- brm(
 
 pp_check(fall_class_fit) +
   ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables))) +
-  theme(plot.title = element_text(size = 8)) +
+                 format_variables(selected_variables, variables_per_line = -1))) +
+  ylim(0, 2.0) +
   theme_minimal()
 
 
@@ -224,8 +224,8 @@ fall_class_fit <- brm(
 
 pp_check(fall_class_fit) +
   ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables))) +
-  theme(plot.title = element_text(size = 8)) +
+                 format_variables(selected_variables, variables_per_line = -1))) +
+  ylim(0, 2.0) +
   theme_minimal()
 
 
@@ -254,8 +254,8 @@ fall_class_fit <- brm(
 
 pp_check(fall_class_fit) +
   ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables))) +
-  theme(plot.title = element_text(size = 8)) +
+                 format_variables(selected_variables, variables_per_line = -1))) +
+  ylim(0, 2.0) +
   theme_minimal()
 
 
@@ -290,8 +290,8 @@ fall_class_fit <- brm(
 
 pp_check(fall_class_fit) +
   ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables))) +
-  theme(plot.title = element_text(size = 8)) +
+                 format_variables(selected_variables, variables_per_line = -1))) +
+  ylim(0, 2.0) +
   theme_minimal()
 
 # ++++++++++++ All variables: ----
@@ -357,8 +357,8 @@ fall_class_fit <- brm(
 
 pp_check(fall_class_fit) +
   ggtitle(paste0("Posterior Predictive Check:\n", 
-                format_variables(selected_variables))) +
-  theme(plot.title = element_text(size = 8)) +
+                 format_variables(selected_variables, variables_per_line = 5))) +
+  ylim(0, 2.0) +
   theme_minimal()
 
 
