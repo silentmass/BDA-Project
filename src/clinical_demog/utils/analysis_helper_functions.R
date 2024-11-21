@@ -90,9 +90,14 @@ print_fall_results <- function(results) {
   print(results$roc_plot)
 }
 
-format_variables <- function(vars) {
-  # Split into groups of 4
-  chunks <- split(vars, ceiling(seq_along(vars)/4))
+format_variables <- function(vars, variables_per_line=4) {
+  if (variables_per_line == -1) {
+    chunks <- list(vars)
+  } else {
+    # Split into groups of variables_per_line
+    chunks <- split(vars, ceiling(seq_along(vars)/variables_per_line))
+  }
+  
   # Join variables in each chunk with commas, then join chunks with newlines
   paste(sapply(chunks, paste, collapse=", "), collapse="\n")
 }
