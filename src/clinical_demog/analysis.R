@@ -125,18 +125,9 @@ fall_class_priors <- c(
   prior(lognormal(0, 1), class = "b", coef = "TUG")
 )
 
-fall_class_fit <- brm(
-  formula = fall_class_formula,
-  data = data,
-  family = bernoulli(),
-  prior = fall_class_priors
-)
+fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernoulli(), prior = fall_class_priors)
 
-pp_check(fall_class_fit) +
-  ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables, variables_per_line = -1))) +
-  ylim(0, 2.0) +
-  theme_minimal()
+plot_pp_check(fall_class_fit, selected_variables)
 
 
 ######## BERG + velocities ----
@@ -157,18 +148,9 @@ fall_class_priors <- c(
   prior(normal(-0.5, 0.5), class = "b", coef = "S3_VELOCITY")
 )
 
-fall_class_fit <- brm(
-  formula = fall_class_formula,
-  data = data,
-  family = bernoulli(),
-  prior = fall_class_priors
-)
+fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernoulli(), prior = fall_class_priors)
 
-pp_check(fall_class_fit) +
-  ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables, variables_per_line = -1))) +
-  ylim(0, 2.0) +
-  theme_minimal()
+plot_pp_check(fall_class_fit, selected_variables)
 
 
 ######## Test scaling BERG variable + velocities ----
@@ -187,18 +169,9 @@ fall_class_priors <- c(
   prior(normal(-0.5, 0.5), class = "b", coef = "S3_VELOCITY")
 )
 
-fall_class_fit <- brm(
-  formula = fall_class_formula,
-  data = data,
-  family = bernoulli(),
-  prior = fall_class_priors
-)
+fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernoulli(), prior = fall_class_priors)
 
-pp_check(fall_class_fit) +
-  ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables, variables_per_line = -1))) +
-  ylim(0, 2.0) +
-  theme_minimal()
+plot_pp_check(fall_class_fit, selected_variables)
 
 
 ######## BERG only ----
@@ -215,18 +188,9 @@ fall_class_priors <- c(
   prior(normal(-1, 1), class = "b", coef = "BERG")
 )
 
-fall_class_fit <- brm(
-  formula = fall_class_formula,
-  data = data,
-  family = bernoulli(),
-  prior = fall_class_priors
-)
+fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernoulli(), prior = fall_class_priors)
 
-pp_check(fall_class_fit) +
-  ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables, variables_per_line = -1))) +
-  ylim(0, 2.0) +
-  theme_minimal()
+plot_pp_check(fall_class_fit, selected_variables)
 
 
 ######## depression ----
@@ -245,18 +209,9 @@ fall_class_priors <- c(
   prior(normal(0, 1), class = "b", coef = "GCS_NEUROTRAX")
 )
 
-fall_class_fit <- brm(
-  formula = fall_class_formula,
-  data = data,
-  family = bernoulli(),
-  prior = fall_class_priors
-)
+fall_class_fit <- brm(formula = fall_class_formula, data = data, family = bernoulli(), prior = fall_class_priors)
 
-pp_check(fall_class_fit) +
-  ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables, variables_per_line = -1))) +
-  ylim(0, 2.0) +
-  theme_minimal()
+plot_pp_check(fall_class_fit, selected_variables)
 
 
 ######## depression+berg+velocity ----
@@ -281,18 +236,9 @@ fall_class_priors <- c(
   prior(normal(-0.5, 0.5), class = "b", coef = "S3_VELOCITY")
 )
 
-fall_class_fit <- brm(
-  formula = fall_class_formula,
-  data = data,
-  family = bernoulli(),
-  prior = fall_class_priors
-)
+fall_class_fit <- brm(formula = fall_class_formula, data = data,family = bernoulli(), prior = fall_class_priors)
 
-pp_check(fall_class_fit) +
-  ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables, variables_per_line = -1))) +
-  ylim(0, 2.0) +
-  theme_minimal()
+plot_pp_check(fall_class_fit, selected_variables)
 
 # ++++++++++++ All variables: ----
 
@@ -355,11 +301,7 @@ fall_class_fit <- brm(
   prior = fall_class_priors
 )
 
-pp_check(fall_class_fit) +
-  ggtitle(paste0("Posterior Predictive Check:\n", 
-                 format_variables(selected_variables, variables_per_line = 5))) +
-  ylim(0, 2.0) +
-  theme_minimal()
+plot_pp_check(fall_class_fit, selected_variables, variables_per_line = 5)
 
 
 
