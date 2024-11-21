@@ -118,6 +118,41 @@ fall_class_fit <- brm(
 # Posterior predictive check
 pp_check(fall_class_fit)
 #----
+#---- berg + velocities
+fall_class_formula <- bf(FALLER ~ 1 +
+                           BERG +
+                         S3_VELOCITY +
+                           BASE_VELOCITY,
+                         family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  
+  # BERG: negative association with falls (higher score = better balance)
+  prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
+  
+  
+  # Velocity measures: both directions possible but likely small effect
+  prior(normal(-0.5, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+
+
+#----
 #BERG only ----
 fall_class_formula <- bf(FALLER ~ 1 +
                            BERG,
@@ -183,6 +218,38 @@ fall_class_fit <- brm(
 # Posterior predictive check
 pp_check(fall_class_fit)
 #----
+#----depression+berg+velocity
+fall_class_formula <- bf(FALLER ~ 1 +
+                           GDS + GCS_NEUROTRAX + BERG + 
+                           BASE_VELOCITY + S3_VELOCITY,
+                           family = "bernoulli")
+
+get_prior(fall_class_formula, data = data)
+
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(student_t(3, 0, 2.5), class = "Intercept"),
+  
+  prior(normal(0, 1), class = "b", coef = "GDS"),
+  prior(normal(0, 1), class = "b", coef = "GCS_NEUROTRAX"),
+  
+  #BERG: negative association with falls (higher score = better balance)
+  prior(normal(-0.5, 0.5), class = "b", coef = "BERG"),
+  # Velocity measures: negative association (higher velocity = better balance)
+  prior(normal(-0.5, 0.5), class = "b", coef = "BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "S3_VELOCITY")
+)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+# Posterior predictive check
+pp_check(fall_class_fit)
+#----
 summary(fall_class_fit)
 # Get predicted probabilities
 predictions <- posterior_predict(fall_class_fit)
@@ -235,8 +302,10 @@ plot(data$BERG, data$YEAR_FALL)
 plot(data$MMSE, data$YEAR_FALL)
 plot(data$FSST, data$FALLER)
 plot(data$TUG, data$YEAR_FALL)
-
-## All variables: 
+plot(data$PASE, data$YEAR_FALL)
+plot(data$S3_VELOCITY, data$YEAR_FALL)
+plot(data$BASE_VELOCITY, data$YEAR_FALL)
+## All variables:---- 
 
 
 fall_class_formula <- bf(FALLER ~ 1 +GDS +
