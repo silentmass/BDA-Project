@@ -1,4 +1,4 @@
-# Load packages and set theme ----
+#########################  Load packages and set theme ----
 
 if (!require(tidyverse)) {
   install.packages("tidyverse")
@@ -78,19 +78,20 @@ if(!cmdstan_installed()){
 
 ggplot2::theme_set(ggplot2::theme_minimal())
 
-# Source helper functions ----
+#########################  Source helper functions ----
 
 source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
 source("src/clinical_demog/utils/analysis_helper_functions.R")
 
 
-# Load and preview data ----
+#########################  Load and preview data ----
 
 data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
 names(data)
 
-# Set common theme ----
+#########################  Set common theme ----
+
 fontsize <- 12
 common_theme <- theme_minimal() +
   theme(
@@ -114,7 +115,7 @@ common_theme <- theme_minimal() +
   )
 
 
-# Catgorize and reshape dataframe for facet plotting ----
+#########################  Categorize and reshape dataframe for facet plotting ----
 
 # Create the category mapping
 # cols_list <- list(
@@ -124,6 +125,7 @@ common_theme <- theme_minimal() +
 #   COGNITIVE = c("GCS_NEUROTRAX", "TMT_A", "TMT_B"),
 #   DEPRESSION = c("GDS")
 # )
+
 cols_list <- list(
   PHYSICAL = c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY"),
   COGNITIVE = c("GCS_NEUROTRAX", "TMT_A", "TMT_B"),
@@ -163,7 +165,8 @@ ggplot(data = plot_data) +
   common_theme
   
 ggsave('plots/predictors/predictors.png', width = 20, height = 5)
-# Basic distribution checks for TMT_A and TMT_B ----
+
+######################### Basic distribution checks for TMT_A and TMT_B ----
 
 source("src/test-demos/clinig_predictors/visualize_predictors_helper_functions.R")
 
@@ -175,7 +178,7 @@ compare_log_transformed(data, "TMT_B")
 ggsave('plots/predictors/TMT_B.png', width = 20, height = 20)
 
 
-# Create log transformed variables  ----
+######################### Log transform and z-score scale and fit  ----
 
 # Create the category mapping
 cols_list <- list(

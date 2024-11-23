@@ -1,4 +1,4 @@
-# Load packages and set theme ----
+######################### Load packages and set theme ----
 
 if (!require(tidyverse)) {
   install.packages("tidyverse")
@@ -78,19 +78,19 @@ if(!cmdstan_installed()){
 
 ggplot2::theme_set(ggplot2::theme_minimal())
 
-# Source helper functions ----
+#########################  Source helper functions ----
 
 source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
 source("src/clinical_demog/utils/analysis_helper_functions.R")
 
 
-# Load and preview data ----
+#########################  Load and preview data ----
 
 data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
 names(data)
 
-# Bayesian areas ----
+######################### Set common theme ----
 
 mcmc_fontsize <- 12
 mcmc_theme <- theme_minimal() +
@@ -114,6 +114,7 @@ mcmc_theme <- theme_minimal() +
     strip.text.x = element_text(margin = margin(b = 10))
   )
 
+#########################  Log transform TMT and z-score scale and fit ----
 
 cols_list <- list(
   PHYSICAL = c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY"),
@@ -131,11 +132,9 @@ data$log_TMT_A <- log(data$TMT_A)
 data$log_TMT_B <- log(data$TMT_B)
 
 # Scale all predictors including log-transformed TMT variables
+data[paste0("z_", predictors)] <- scale(data[predictors]) # Scale also GENDER
 
-data_scaled <- data
-# data_scaled[paste0("z_", predictors[predictors != "GENDER"])] <- scale(data[predictors[predictors != "GENDER"]])
-data_scaled[paste0("z_", predictors)] <- scale(data[predictors])
-
+# Scaled predictor names
 cols_list <- list(
   PHYSICAL = paste0("z_", c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY")),
   COGNITIVE = paste0("z_", c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")),
@@ -147,13 +146,10 @@ predictor_categories <- rep(names(cols_list), times = sapply(cols_list, length))
 names(predictor_categories) <- unlist(cols_list)
 predictors <- names(predictor_categories)
 
-z_data <- data_scaled
-
-z_data$FALLER <- factor(z_data$FALLER)
+data$FALLER <- factor(data$FALLER)
 
 fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
 
-# Example with specific priors
 fall_class_priors <- c(
   prior(normal(0, 1.5), class = "Intercept"),
   # Gait speed - stronger prior based on your data showing clear difference
@@ -165,12 +161,36 @@ fall_class_priors <- c(
 
 fall_class_fit <- brm(
   formula = fall_class_formula,
-  data = z_data,
+  data = data,
   prior = fall_class_priors
 )
 
 summary(fall_class_fit)
 
+posterior <- as_draws_df(fall_class_fit)
+
+mcmc_areas(
+  posterior,
+  pars = paste0("b_", predictors)
+) + mcmc_theme
+ggsave("plots/predictors/mcmc_areas.png")
+
+mcmc_trace(
+  posterior,
+  pars = paste0("b_", predictors)
+) + mcmc_theme
+ggsave("plots/predictors/mcmc_traces.png")
+
+mcmc_intervals(
+  posterior,
+  pars = paste0("b_", predictors),
+) + mcmc_theme
+ggsave("plots/predictors/mcmc_intervals.png")
+
+loo_result <- loo(fall_class_fit)
+print(loo_result)
+
+# Save results
 
 # Extract fixed effects
 fixed_effects <- fixef(fall_class_fit)
@@ -199,26 +219,3 @@ fit_stats <- data.frame(
   looic = loo_result$estimates["looic", "Estimate"]
 )
 write.csv(fit_stats, "results/fall_model_fit_statistics.csv", row.names = FALSE)
-
-
-posterior <- as_draws_df(fall_class_fit)
-
-mcmc_areas(
-  posterior,
-  pars = paste0("b_", predictors)
-) + mcmc_theme
-ggsave("plots/predictors/mcmc_areas.png")
-
-mcmc_trace(
-  posterior,
-  pars = paste0("b_", predictors)
-) + mcmc_theme
-ggsave("plots/predictors/mcmc_traces.png")
-mcmc_intervals(
-  posterior,
-  pars = paste0("b_", predictors),
-) + mcmc_theme
-ggsave("plots/predictors/mcmc_intervals.png")
-
-loo_result <- loo(fall_class_fit)
-print(loo_result)
