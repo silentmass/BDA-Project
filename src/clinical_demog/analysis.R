@@ -398,3 +398,57 @@ loo_result <- loo(fall_class_fit)
 
 # Tulosta LOO-yhteenveto
 print(loo_result)
+
+## All scaled variables with more informative priors----
+fall_class_priors <- c(
+  # Intercept: weakly informative prior
+  prior(normal(0,10), class = "Intercept"),
+  prior(normal(0,5), class = "b")
+)
+
+new_data <- data
+new_data[, selected_variables] <- lapply(data[, selected_variables], scale)
+
+fall_class_fit <- brm(
+  formula = fall_class_formula,
+  data = new_data,
+  family = bernoulli(),
+  prior = fall_class_priors
+)
+
+pp_check(fall_class_fit)
+
+summary(fall_class_fit)
+
+posterior <- as_draws_df(fall_class_fit)
+mcmc_areas(
+  posterior,
+  pars = c('b_GDS',
+           'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+           'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY',
+           "b_PASE","b_FEET_CLOSE_EYES_OPEN","b_FEET_CLOSE_EYES_CLOSED","b_TANDEM_EYES_OPEN","b_TANDEM_EYES_CLOSED"),  # Valitse tarkasteltavat parametrit
+)
+
+
+mcmc_trace(
+  posterior,
+  pars = c('b_GDS',
+           'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+           'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
+mcmc_intervals(
+  posterior,
+  pars = c('b_GDS',
+           'b_AGE','b_GCS_NEUROTRAX','b_EFI_EXEC_FUNC_INDEX','b_GENDER','b_ABC_TOTAL_PERCENT','b_SF36','b_MMSE','b_MOCA','b_FAB',
+           'b_TUG','b_FSST','b_BERG','b_DGI','b_TMT_A','b_TMT_B','b_BASE_VELOCITY','b_S3_VELOCITY'),  # Valitse tarkasteltavat parametrit
+  prob = 0.95  # Näytä 95% uskottavuusväli
+)
+library(loo)
+
+# Lasketaan LOO-arvo brms-mallille
+loo_result <- loo(fall_class_fit)
+
+# Tulosta LOO-yhteenveto
+print(loo_result)
+
