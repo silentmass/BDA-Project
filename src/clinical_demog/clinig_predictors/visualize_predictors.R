@@ -127,7 +127,7 @@ common_theme <- theme_minimal() +
 # )
 
 cols_list <- list(
-  PHYSICAL = c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY"),
+  PHYSICAL = c(("GENDER", "DGI", "FSST", "TUG", "BASE_VELOCITY", "S3_VELOCITY"),
   COGNITIVE = c("GCS_NEUROTRAX", "TMT_A", "TMT_B"),
   DEPRESSION = c("GDS")
 )
