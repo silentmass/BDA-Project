@@ -115,11 +115,14 @@ mcmc_theme <- theme_minimal() +
   )
 
 #########################  Log transform TMT and z-score scale and fit ----
+physical_cols <- c("GENDER", "DGI", "FSST", "TUG", "BASE_VELOCITY", "S3_VELOCITY")
+cognitive_cols <- c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")
+depression_cols <- c("GDS")
 
 cols_list <- list(
-  PHYSICAL = c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY"),
-  COGNITIVE = c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B"),
-  DEPRESSION = c("GDS")
+  PHYSICAL = physical_cols,
+  COGNITIVE = cognitive_cols,
+  DEPRESSION = depression_cols
 )
 predictor_category_names <- names(cols_list)
 
@@ -136,9 +139,9 @@ data[paste0("z_", predictors)] <- scale(data[predictors]) # Scale also GENDER
 
 # Scaled predictor names
 cols_list <- list(
-  PHYSICAL = paste0("z_", c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY")),
-  COGNITIVE = paste0("z_", c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")),
-  DEPRESSION = paste0("z_", c("GDS"))
+  PHYSICAL = paste0("z_", physical_cols),
+  COGNITIVE = paste0("z_", cognitive_cols),
+  DEPRESSION = paste0("z_", depression_cols)
 )
 predictor_category_names <- names(cols_list)
 
@@ -152,6 +155,8 @@ fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, coll
 
 fall_class_priors <- c(
   prior(normal(0, 1.5), class = "Intercept"),
+  # FSST - strong negative prior based on literature
+  prior(normal(-2, 1), class = "b", coef = "z_FSST"),  # Stronger negative prior
   # Gait speed - stronger prior based on your data showing clear difference
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
   prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
