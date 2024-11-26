@@ -187,6 +187,10 @@ mcmc_intervals(
 ) + mcmc_theme
 ggsave("plots/predictors/mcmc_intervals.png")
 
+#projpred variable selection----
+varsel2 <- cv_varsel(fall_class_fit, method='forward', cv_method='loo', validate_search=FALSE)
+plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
+#----
 loo_result <- loo(fall_class_fit)
 print(loo_result)
 
