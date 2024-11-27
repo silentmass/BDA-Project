@@ -1,4 +1,4 @@
-# Load required library
+# Load required library ----
 library(readr)
 library(dplyr)
 
@@ -7,6 +7,7 @@ get_gender_col <- function(df) {
 }
 
 
+# ----
 
 # Read and combine the sheets
 # Get sheet names
@@ -17,6 +18,8 @@ file_path_prefix <- "data/ClinicalDemogData_COFL/"
 controls <- read_delim(
   paste0(file_path_prefix, "Controls-Table 1.csv"),
   delim = ";",
+  locale = locale(decimal_mark = ",", 
+                  grouping_mark = "."),
   escape_double = FALSE,
   trim_ws = TRUE,
 )
@@ -40,6 +43,8 @@ controls$FALLER <- 0
 fallers <- read_delim(
   paste0(file_path_prefix, "Fallers-Table 1.csv"),
   delim = ";",
+  locale = locale(decimal_mark = ",", 
+                  grouping_mark = "."),
   escape_double = FALSE,
   trim_ws = TRUE
 )
@@ -54,6 +59,9 @@ variable_legend <- read_delim(
   escape_double = FALSE,
   trim_ws = TRUE
 )
+
+
+# ----
 
 
 
