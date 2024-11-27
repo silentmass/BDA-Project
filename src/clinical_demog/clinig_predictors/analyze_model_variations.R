@@ -71,13 +71,8 @@ if (!require(projpred)) {
   install.packages("projpred")
   library(projpred)
 }
-if(!require(rstanarm)) {
-  install.packages("rstanarm")
-  library(rstanarm)
-}
 
-
-cmdstan_installed <- function(){
+cmdstan_installed <- function(){u
   res <- try(out <- cmdstanr::cmdstan_path(), silent = TRUE)
   !inherits(res, "try-error")
 }
@@ -222,7 +217,7 @@ print(loo_horseshoe)
 #----
 #projpred variable selection----
 #here validate_search=FALSE, because it is a lot faster than TRUE. The result was the same.
-varsel2 <- cv_varsel(fall_class_horseshoe_fit, method='forward', cv_method='loo', validate_search=FALSE)
+varsel2 <- cv_varsel(fall_class_horseshoe_fit, method='forward', cv_method='loo', validate_search=TRUE)
 plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
 nsel<-suggest_size(varsel2)
 (vsel<-solution_terms(varsel2)[1:nsel])
@@ -235,27 +230,26 @@ round(posterior_interval(proj2draws),1)
 mcmc_areas(proj2draws, prob = 0.95, prob_outer = 1,
            pars = c('Intercept', vsel))
 #--------
-#BASE VELOCITY only because it was the one selected by cv_varsel ----
-fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", "z_BASE_VELOCITY")), family = "bernoulli")
+#z_FSST only because it was the one selected by cv_varsel ----
+fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", "z_FSST")), family = "bernoulli")
 
 fall_class_priors <- c(
   prior(normal(0, 1.5), class = "Intercept"),
-  # Gait speed - stronger prior based on your data showing clear difference
-  prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY")
+  prior(normal(0, 1), class = "b")
   
 )
 
-fall_class_base_velocity_fit <- brm(
+fall_class_fsst_fit <- brm(
   formula = fall_class_formula,
   data = data,
   prior = fall_class_priors,
   seed = 2024
 )
 
-summary(fall_class_base_velocity_fit)
+summary(fall_class_fsst_fit)
 
-loo_base_velocity <- loo(fall_class_base_velocity_fit)
-print(loo_base_velocity)
+loo_fsst <- loo(fall_class_fsst_fit)
+print(loo_fsst)
 #----
 #physical ---
 
@@ -341,6 +335,7 @@ summary(fall_class_speed_fit)
 
 loo_speed <- loo(fall_class_speed_fit)
 print(loo_speed)
+
 #----
 #Cognitive----
 predictors <- names(predictor_categories[predictor_categories == "COGNITIVE"])
@@ -368,6 +363,15 @@ summary(fall_class_cognition_fit)
 
 loo_cognition <- loo(fall_class_cognition_fit)
 print(loo_cognition)
+#----
+#plot pp check for all ----
+par(mfrow = c(2, 3))
+plot_pp_check(fall_class_fit, names(predictor_categories))
+plot_pp_check(fall_class_horseshoe_fit, names(predictor_categories))
+plot_pp_check(fall_class_fsst_fit, "z_FSST")
+plot_pp_check(fall_class_physical_fit, cols_list$PHYSICAL)
+plot_pp_check(fall_class_speed_fit, cols_list$SPEED)
+plot_pp_check(fall_class_cognition_fit, cols_list$COGNITION)
 #-------
 # Save results
 
