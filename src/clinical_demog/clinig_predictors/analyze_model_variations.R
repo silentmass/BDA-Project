@@ -72,7 +72,7 @@ if (!require(projpred)) {
   library(projpred)
 }
 
-cmdstan_installed <- function(){u
+cmdstan_installed <- function(){
   res <- try(out <- cmdstanr::cmdstan_path(), silent = TRUE)
   !inherits(res, "try-error")
 }
@@ -216,7 +216,7 @@ loo_horseshoe <- loo(fall_class_horseshoe_fit)
 print(loo_horseshoe)
 #----
 #projpred variable selection----
-#here validate_search=FALSE, because it is a lot faster than TRUE. The result was the same.
+#here validate_search=TRUE, even if it is slower that way
 varsel2 <- cv_varsel(fall_class_horseshoe_fit, method='forward', cv_method='loo', validate_search=TRUE)
 plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
 nsel<-suggest_size(varsel2)
@@ -372,6 +372,7 @@ plot_pp_check(fall_class_fsst_fit, "z_FSST")
 plot_pp_check(fall_class_physical_fit, cols_list$PHYSICAL)
 plot_pp_check(fall_class_speed_fit, cols_list$SPEED)
 plot_pp_check(fall_class_cognition_fit, cols_list$COGNITION)
+plot_pp_check(fall_class_depression_fit, cols_list$DEPRESSION)
 #-------
 # Save results
 
