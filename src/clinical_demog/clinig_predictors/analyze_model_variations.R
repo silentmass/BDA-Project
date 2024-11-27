@@ -364,6 +364,85 @@ summary(fall_class_cognition_fit)
 loo_cognition <- loo(fall_class_cognition_fit)
 print(loo_cognition)
 #----
+#hierarchical by gender ----
+cols_list_for_hierarchical <- list(
+  PHYSICAL = paste0("z_", c("DGI", "TUG","FSST")),
+  COGNITIVE = paste0("z_", c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")),
+  DEPRESSION = paste0("z_", c("GDS"))
+)
+predictor_category_names <- names(cols_list_for_hierarchical)
+
+predictor_categories <- rep(names(cols_list_for_hierarchical), times = sapply(cols_list_for_hierarchical, length))
+names(predictor_categories) <- unlist(cols_list_for_hierarchical)
+predictors_for_hier <- names(predictor_categories)
+
+fall_class_formula <- bf(as.formula(paste("FALLER ~ -1 +", paste(predictors_for_hier, collapse = " + "), 
+                                                                paste("+ (1 + z_BASE_VELOCITY + z_S3_VELOCITY | GENDER)"))), 
+                         family = "bernoulli")
+
+
+
+fall_class_priors <- c(
+  prior(normal(0, 1.5), class = "sd"),
+  
+  # Other variables - more uncertain
+  prior(normal(0, 1), class = "b")
+  
+)
+
+fall_class_hierarchical_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  prior = fall_class_priors,
+  seed = 2024
+)
+
+
+summary(fall_class_hierarchical_fit)
+
+loo_hierarchical <- loo(fall_class_hierarchical_fit)
+print(loo_hierarchical)
+
+#----
+#hierarchical by gender, only speed and depression----
+
+cols_list_depr <- list(
+  DEPRESSION = paste0("z_", c("GDS"))
+)
+predictor_category_names <- names(cols_list_depr)
+
+predictor_categories <- rep(names(cols_list_depr), times = sapply(cols_list_depr, length))
+names(predictor_categories) <- unlist(cols_list_depr)
+predictors_depr <- names(predictor_categories)
+
+fall_class_formula <- bf(as.formula(paste("FALLER ~ -1 +", paste(predictors, collapse = " + "), 
+                                          paste("+ (1 + z_BASE_VELOCITY + z_S3_VELOCITY | GENDER)"))), 
+                         family = "bernoulli")
+
+
+
+fall_class_priors <- c(
+  prior(normal(0, 1.5), class = "sd"),
+  
+  # Other variables - more uncertain
+  prior(normal(0, 1), class = "b")
+  
+)
+
+fall_class_hierarchical_depr_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  prior = fall_class_priors,
+  seed = 2024
+)
+
+
+summary(fall_class_hierarchical_depr_fit)
+
+loo_hierarchical_depr <- loo(fall_class_hierarchical_depr_fit)
+print(loo_hierarchical_depr)
+
+#----
 #plot pp check for all ----
 par(mfrow = c(2, 3))
 plot_pp_check(fall_class_fit, names(predictor_categories))
@@ -373,6 +452,8 @@ plot_pp_check(fall_class_physical_fit, cols_list$PHYSICAL)
 plot_pp_check(fall_class_speed_fit, cols_list$SPEED)
 plot_pp_check(fall_class_cognition_fit, cols_list$COGNITION)
 plot_pp_check(fall_class_depression_fit, cols_list$DEPRESSION)
+plot_pp_check(fall_class_hierarchical_fit, predictors_for_hier)
+plot_pp_check(fall_class_hierarchical_depr_fit, predictors_depr)
 #-------
 # Save results
 
