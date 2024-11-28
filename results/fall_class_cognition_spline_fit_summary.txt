@@ -1,0 +1,26 @@
+ Family: bernoulli 
+  Links: mu = logit 
+Formula: FALLER ~ 1 + z_GCS_NEUROTRAX + z_log_TMT_A + z_log_TMT_B + s(z_GCS_NEUROTRAX) + s(z_log_TMT_A) + s(z_log_TMT_B) 
+   Data: data (Number of observations: 76) 
+  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+         total post-warmup draws = 4000
+
+Smoothing Spline Hyperparameters:
+                        Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sds(sz_GCS_NEUROTRAX_1)     2.75      1.66     0.37     6.96 1.00     2390     1589
+sds(sz_log_TMT_A_1)         1.18      1.09     0.04     4.05 1.00     2412     2193
+sds(sz_log_TMT_B_1)         1.43      1.23     0.05     4.52 1.00     2540     2018
+
+Regression Coefficients:
+                   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+Intercept             -0.32      0.26    -0.84     0.20 1.00     6596     2594
+z_GCS_NEUROTRAX       -0.06      0.63    -1.22     1.27 1.00     3697     3055
+z_log_TMT_A           -0.14      0.60    -1.25     1.17 1.00     2746     1748
+z_log_TMT_B            0.00      0.58    -1.23     1.06 1.00     3070     2117
+sz_GCS_NEUROTRAX_1     0.00      1.03    -2.00     2.06 1.00     5854     2614
+sz_log_TMT_A_1        -0.04      0.98    -1.93     1.86 1.00     5587     2629
+sz_log_TMT_B_1        -0.01      1.00    -2.01     1.97 1.00     5712     2430
+
+Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).

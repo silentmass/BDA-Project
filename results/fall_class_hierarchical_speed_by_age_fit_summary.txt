@@ -1,0 +1,24 @@
+ Family: bernoulli 
+  Links: mu = logit 
+Formula: FALLER ~ 1 + (1 + z_BASE_VELOCITY + z_S3_VELOCITY | AGE_GROUP) 
+   Data: data (Number of observations: 76) 
+  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+         total post-warmup draws = 4000
+
+Multilevel Hyperparameters:
+~AGE_GROUP (Number of levels: 3) 
+                                   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sd(Intercept)                          0.68      0.55     0.02     2.11 1.00     1176      969
+sd(z_BASE_VELOCITY)                    0.42      0.26     0.02     0.99 1.00     1668     1288
+sd(z_S3_VELOCITY)                      0.29      0.23     0.01     0.83 1.00     1817     1444
+cor(Intercept,z_BASE_VELOCITY)         0.16      0.48    -0.79     0.91 1.00     2463     2568
+cor(Intercept,z_S3_VELOCITY)           0.08      0.49    -0.83     0.89 1.00     3127     2592
+cor(z_BASE_VELOCITY,z_S3_VELOCITY)     0.09      0.47    -0.81     0.88 1.00     3393     2997
+
+Regression Coefficients:
+          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+Intercept    -0.17      0.47    -1.08     0.88 1.00     1565     1864
+
+Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).

@@ -1,0 +1,94 @@
+ Family: bernoulli 
+  Links: mu = logit 
+Formula: FALLER ~ 1 + z_GENDER + z_DGI + z_TUG + z_FSST + z_GCS_NEUROTRAX + z_log_TMT_A + z_log_TMT_B + z_BASE_VELOCITY + z_S3_VELOCITY + z_GDS + (1 + z_GENDER + z_DGI + z_TUG + z_FSST + z_GCS_NEUROTRAX + z_log_TMT_A + z_log_TMT_B + z_BASE_VELOCITY + z_S3_VELOCITY + z_GDS | AGE_GROUP) 
+   Data: data (Number of observations: 76) 
+  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+         total post-warmup draws = 4000
+
+Multilevel Hyperparameters:
+~AGE_GROUP (Number of levels: 3) 
+                                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sd(Intercept)                            0.76      0.52     0.04     1.98 1.00     2163     2252
+sd(z_GENDER)                             0.50      0.42     0.02     1.54 1.00     2452     1889
+sd(z_DGI)                                0.69      0.51     0.03     1.85 1.00     2302     1648
+sd(z_TUG)                                0.88      0.59     0.04     2.24 1.00     2736     1962
+sd(z_FSST)                               0.74      0.54     0.03     2.00 1.00     2270     1569
+sd(z_GCS_NEUROTRAX)                      0.82      0.55     0.04     2.06 1.00     2554     2152
+sd(z_log_TMT_A)                          0.66      0.49     0.03     1.85 1.00     2414     1796
+sd(z_log_TMT_B)                          0.60      0.46     0.02     1.66 1.00     2885     2299
+sd(z_BASE_VELOCITY)                      0.24      0.20     0.01     0.73 1.00     3769     2105
+sd(z_S3_VELOCITY)                        0.26      0.22     0.01     0.83 1.00     3205     1808
+sd(z_GDS)                                0.61      0.49     0.02     1.86 1.00     2854     1924
+cor(Intercept,z_GENDER)                  0.01      0.29    -0.54     0.55 1.00     6169     2829
+cor(Intercept,z_DGI)                     0.02      0.29    -0.54     0.56 1.00     6422     2932
+cor(z_GENDER,z_DGI)                      0.00      0.29    -0.55     0.56 1.00     5586     2902
+cor(Intercept,z_TUG)                    -0.02      0.29    -0.56     0.53 1.00     7651     3045
+cor(z_GENDER,z_TUG)                      0.00      0.29    -0.56     0.54 1.00     4640     3132
+cor(z_DGI,z_TUG)                        -0.03      0.29    -0.57     0.52 1.00     5022     3281
+cor(Intercept,z_FSST)                   -0.03      0.29    -0.57     0.53 1.00     6426     2787
+cor(z_GENDER,z_FSST)                    -0.01      0.28    -0.54     0.54 1.00     5134     3179
+cor(z_DGI,z_FSST)                       -0.02      0.29    -0.57     0.54 1.00     4725     3253
+cor(z_TUG,z_FSST)                        0.02      0.29    -0.54     0.57 1.00     4354     3291
+cor(Intercept,z_GCS_NEUROTRAX)           0.06      0.29    -0.51     0.61 1.00     6257     2923
+cor(z_GENDER,z_GCS_NEUROTRAX)            0.03      0.29    -0.52     0.57 1.00     5936     3225
+cor(z_DGI,z_GCS_NEUROTRAX)               0.01      0.29    -0.54     0.56 1.00     4368     3146
+cor(z_TUG,z_GCS_NEUROTRAX)              -0.01      0.28    -0.55     0.53 1.00     3625     3133
+cor(z_FSST,z_GCS_NEUROTRAX)             -0.04      0.29    -0.58     0.53 1.00     3602     3260
+cor(Intercept,z_log_TMT_A)               0.01      0.29    -0.54     0.55 1.00     6388     2653
+cor(z_GENDER,z_log_TMT_A)               -0.01      0.29    -0.57     0.55 1.00     5999     3217
+cor(z_DGI,z_log_TMT_A)                   0.02      0.28    -0.54     0.56 1.00     4526     3097
+cor(z_TUG,z_log_TMT_A)                  -0.04      0.29    -0.60     0.53 1.00     3596     2998
+cor(z_FSST,z_log_TMT_A)                 -0.02      0.28    -0.55     0.53 1.00     3717     3291
+cor(z_GCS_NEUROTRAX,z_log_TMT_A)        -0.01      0.29    -0.56     0.55 1.00     3764     3365
+cor(Intercept,z_log_TMT_B)               0.01      0.29    -0.54     0.55 1.00     6314     2681
+cor(z_GENDER,z_log_TMT_B)               -0.01      0.29    -0.57     0.55 1.00     4973     2588
+cor(z_DGI,z_log_TMT_B)                   0.02      0.29    -0.53     0.60 1.00     4221     2928
+cor(z_TUG,z_log_TMT_B)                  -0.04      0.28    -0.56     0.51 1.00     4314     3373
+cor(z_FSST,z_log_TMT_B)                 -0.02      0.29    -0.57     0.54 1.00     3660     3140
+cor(z_GCS_NEUROTRAX,z_log_TMT_B)         0.01      0.29    -0.54     0.56 1.00     3232     2904
+cor(z_log_TMT_A,z_log_TMT_B)            -0.00      0.29    -0.57     0.56 1.00     3011     3102
+cor(Intercept,z_BASE_VELOCITY)           0.00      0.29    -0.55     0.56 1.00     7689     2475
+cor(z_GENDER,z_BASE_VELOCITY)            0.01      0.28    -0.53     0.54 1.00     5434     2559
+cor(z_DGI,z_BASE_VELOCITY)              -0.00      0.29    -0.56     0.58 1.00     4561     2872
+cor(z_TUG,z_BASE_VELOCITY)               0.01      0.28    -0.53     0.55 1.00     4493     2766
+cor(z_FSST,z_BASE_VELOCITY)              0.00      0.29    -0.56     0.55 1.00     3405     3420
+cor(z_GCS_NEUROTRAX,z_BASE_VELOCITY)     0.00      0.28    -0.54     0.55 1.00     3477     3099
+cor(z_log_TMT_A,z_BASE_VELOCITY)        -0.00      0.29    -0.55     0.56 1.00     3035     3356
+cor(z_log_TMT_B,z_BASE_VELOCITY)        -0.01      0.29    -0.55     0.55 1.00     2449     2692
+cor(Intercept,z_S3_VELOCITY)             0.01      0.28    -0.51     0.56 1.00     8098     3178
+cor(z_GENDER,z_S3_VELOCITY)              0.00      0.28    -0.55     0.54 1.00     5136     2818
+cor(z_DGI,z_S3_VELOCITY)                 0.01      0.29    -0.55     0.57 1.00     4696     3256
+cor(z_TUG,z_S3_VELOCITY)                -0.01      0.28    -0.54     0.55 1.00     3876     2697
+cor(z_FSST,z_S3_VELOCITY)               -0.01      0.30    -0.58     0.55 1.00     4003     3128
+cor(z_GCS_NEUROTRAX,z_S3_VELOCITY)       0.00      0.28    -0.55     0.54 1.00     3370     2888
+cor(z_log_TMT_A,z_S3_VELOCITY)           0.02      0.29    -0.55     0.58 1.00     2729     2873
+cor(z_log_TMT_B,z_S3_VELOCITY)           0.01      0.29    -0.54     0.57 1.00     2607     3654
+cor(z_BASE_VELOCITY,z_S3_VELOCITY)      -0.01      0.29    -0.55     0.55 1.00     2519     3197
+cor(Intercept,z_GDS)                     0.02      0.29    -0.53     0.59 1.00     6156     2929
+cor(z_GENDER,z_GDS)                      0.01      0.29    -0.55     0.56 1.00     5321     3060
+cor(z_DGI,z_GDS)                        -0.01      0.28    -0.54     0.54 1.00     4417     2560
+cor(z_TUG,z_GDS)                        -0.00      0.28    -0.54     0.53 1.00     3701     3083
+cor(z_FSST,z_GDS)                       -0.02      0.29    -0.55     0.54 1.00     3378     2863
+cor(z_GCS_NEUROTRAX,z_GDS)               0.03      0.29    -0.53     0.56 1.00     2997     3477
+cor(z_log_TMT_A,z_GDS)                  -0.01      0.29    -0.57     0.57 1.00     2673     3160
+cor(z_log_TMT_B,z_GDS)                  -0.01      0.29    -0.57     0.55 1.00     2386     2927
+cor(z_BASE_VELOCITY,z_GDS)              -0.00      0.29    -0.56     0.56 1.00     2006     2933
+cor(z_S3_VELOCITY,z_GDS)                 0.00      0.29    -0.56     0.57 1.00     2260     2779
+
+Regression Coefficients:
+                Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+Intercept          -0.44      0.61    -1.58     0.87 1.00     2533     2525
+z_GENDER           -0.43      0.46    -1.33     0.52 1.00     3735     2466
+z_DGI              -0.45      0.57    -1.59     0.70 1.00     3774     3051
+z_TUG               0.30      0.70    -1.06     1.65 1.00     4587     2811
+z_FSST              0.44      0.66    -0.94     1.70 1.00     4488     3278
+z_GCS_NEUROTRAX    -0.04      0.56    -1.15     1.13 1.00     2783     2711
+z_log_TMT_A        -0.42      0.56    -1.52     0.67 1.00     5014     2923
+z_log_TMT_B        -0.16      0.58    -1.30     1.01 1.00     4602     3508
+z_BASE_VELOCITY    -0.42      0.40    -1.20     0.38 1.00     6390     2815
+z_S3_VELOCITY      -0.31      0.39    -1.09     0.45 1.00     5434     2957
+z_GDS               0.77      0.48    -0.24     1.68 1.00     3586     2189
+
+Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).

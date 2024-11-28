@@ -122,7 +122,7 @@ mcmc_theme <- theme_minimal() +
 #########################  Log transform TMT and z-score scale and fit ----
 
 cols_list <- list(
-  PHYSICAL = c("GENDER", "DGI", "TUG", "FSST"),
+  PHYSICAL = c("AGE", "GENDER", "DGI", "TUG", "FSST"),
   SPEED = c("BASE_VELOCITY", "S3_VELOCITY"),
   COGNITIVE = c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B"),
   DEPRESSION = c("GDS")
@@ -142,7 +142,7 @@ data[paste0("z_", predictors)] <- scale(data[predictors]) # Scale also GENDER
 
 # Scaled predictor names
 cols_list <- list(
-  PHYSICAL = paste0("z_", c("GENDER", "DGI", "TUG","FSST")),
+  PHYSICAL = paste0("z_", c("AGE","GENDER", "DGI", "TUG","FSST")),
   SPEED = paste0("z_", c("BASE_VELOCITY", "S3_VELOCITY")),
   COGNITIVE = paste0("z_", c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")),
   DEPRESSION = paste0("z_", c("GDS"))
@@ -159,7 +159,7 @@ data$FALLER <- factor(data$FALLER)
 fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
 
 fall_class_priors <- c(
-  prior(normal(0, 1.5), class = "Intercept"),
+  prior(normal(0, 1), class = "Intercept"),
   # Gait speed - stronger prior based on your data showing clear difference
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
   prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
@@ -174,8 +174,10 @@ fall_class_fit <- brm(
   seed = 2024
 )
 
-summary(fall_class_fit)
+summary<-summary(fall_class_fit)
+capture.output(summary, file="results/fall_Class_fit_summary.txt")
 loo_result <- loo(fall_class_fit)
+capture.output(loo_result, file="results/loo_fall_class_fit.txt")
 print(loo_result)
 #----
 posterior <- as_draws_df(fall_class_fit)
@@ -200,36 +202,11 @@ ggsave("plots/predictors/mcmc_intervals.png")
 #--------
 
 #horse shoe priors ----
-fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+The
 
-hs_prior <- prior(horseshoe(df = 1), class = "b")
-
-fall_class_horseshoe_fit <- brm(
-  formula = fall_class_formula,
-  data = data,
-  prior = hs_prior,
-  seed = 2024
-)
-
-summary(fall_class_horseshoe_fit)
-loo_horseshoe <- loo(fall_class_horseshoe_fit)
-print(loo_horseshoe)
 #----
-#projpred variable selection----
-#here validate_search=TRUE, even if it is slower that way
-varsel2 <- cv_varsel(fall_class_horseshoe_fit, method='forward', cv_method='loo', validate_search=TRUE)
-plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
-nsel<-suggest_size(varsel2)
-(vsel<-solution_terms(varsel2)[1:nsel])
-proj2 <- project(varsel2, nv = nsel, ns = 4000)
-proj2draws <- as.matrix(proj2)
-colnames(proj2draws) <- c("Intercept",vsel)
-round(colMeans(proj2draws),1)
-round(posterior_interval(proj2draws),1)
 
-mcmc_areas(proj2draws, prob = 0.95, prob_outer = 1,
-           pars = c('Intercept', vsel))
-#--------
+
 #z_FSST only because it was the one selected by cv_varsel ----
 fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", "z_FSST")), family = "bernoulli")
 
@@ -251,14 +228,14 @@ summary(fall_class_fsst_fit)
 loo_fsst <- loo(fall_class_fsst_fit)
 print(loo_fsst)
 #----
-#physical ---
+#physical ----
 
 predictors <- cols_list$PHYSICAL
 fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
 
 
 fall_class_priors <- c(
-  prior(normal(0, 1.5), class = "Intercept"),
+  prior(normal(0, 1), class = "Intercept"),
   # Gait speed - stronger prior based on your data showing clear difference
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
   prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
@@ -275,11 +252,13 @@ fall_class_physical_fit <- brm(
 )
 
 
-summary(fall_class_physical_fit)
+summary<-summary(fall_class_physical_fit)
+capture.output(summary, file="results/fall_class_physical_fit_summary.txt")
 
 loo_physical <- loo(fall_class_physical_fit)
+capture.output(loo_physical, file="results/loo_physical.txt")
 print(loo_physical)
-#----
+
 #Depression----
 
 predictors <- cols_list$DEPRESSION
@@ -287,9 +266,8 @@ fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, coll
 
 
 fall_class_priors <- c(
-  prior(normal(0, 1.5), class = "Intercept"),
-  
-  # Other variables - more uncertain
+  prior(normal(0, 1), class = "Intercept"),
+   # Other variables - more uncertain
   prior(normal(0, 1), class = "b")
   
 )
@@ -302,9 +280,11 @@ fall_class_depression_fit <- brm(
 )
 
 
-summary(fall_class_depression_fit)
+summary<-summary(fall_class_depression_fit)
+capture.output(summary, file = "results/fall_class_depression_fit_summary.txt")
 
 loo_depression <- loo(fall_class_depression_fit)
+capture.output(loo_depression, file = "results/loo_depression.txt")
 print(loo_depression)
 #----
 #Speed-----
@@ -314,7 +294,7 @@ fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, coll
 
 
 fall_class_priors <- c(
-  prior(normal(0, 1.5), class = "Intercept"),
+  prior(normal(0, 1), class = "Intercept"),
   # Gait speed - stronger prior based on your data showing clear difference
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
   prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
@@ -331,9 +311,10 @@ fall_class_speed_fit <- brm(
 )
 
 
-summary(fall_class_speed_fit)
-
+summary<-summary(fall_class_speed_fit)
+capture.output(summary, file = "results/fall_class_speed_fit_summary.txt")
 loo_speed <- loo(fall_class_speed_fit)
+capture.output(loo_speed, file = "results/loo_speed.txt")
 print(loo_speed)
 
 #----
@@ -344,7 +325,7 @@ fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, coll
 
 
 fall_class_priors <- c(
-  prior(normal(0, 1.5), class = "Intercept"),
+  prior(normal(0, 1), class = "Intercept"),
   
   # Other variables - more uncertain
   prior(normal(0, 1), class = "b")
@@ -359,15 +340,53 @@ fall_class_cognition_fit <- brm(
 )
 
 
-summary(fall_class_cognition_fit)
-
+summary<-summary(fall_class_cognition_fit)
+capture.output(summary, file = "results/fall_class_cognition_fit_summary.txt")
 loo_cognition <- loo(fall_class_cognition_fit)
+capture.output(loo_cognition, file = "results/loo_cognition.txt")
 print(loo_cognition)
 #----
-#hierarchical by gender ----
+#Cognitive with spline----
+predictors <- names(predictor_categories[predictor_categories == "COGNITIVE"])
+fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "), 
+                                          " + s(z_GCS_NEUROTRAX) +s(z_log_TMT_A) + s(z_log_TMT_B)")), 
+                         family = "bernoulli")
+
+
+
+fall_class_priors <- c(
+  prior(normal(0, 1), class = "Intercept"),
+  
+  # Other variables - more uncertain
+  prior(normal(0, 1), class = "b")
+  
+)
+
+fall_class_cognition_spline_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  prior = fall_class_priors,
+  seed = 2024
+)
+
+
+summary<-summary(fall_class_cognition_spline_fit)
+capture.output(summary, file = "results/fall_class_cognition_spline_fit_summary.txt")
+loo_cognition_spline <- loo(fall_class_cognition_spline_fit)
+capture.output(loo_cognition_spline, file = "results/loo_cognition_spline.txt")
+print(loo_cognition_spline)
+#----
+#hierarchical by age ----
+data <- data %>%
+  mutate(AGE_GROUP = case_when(
+    AGE < 75 ~ 1,
+    AGE >= 75 & AGE <= 80 ~ 2,
+    AGE > 80 ~ 3
+  ))
 cols_list_for_hierarchical <- list(
-  PHYSICAL = paste0("z_", c("DGI", "TUG","FSST")),
+  PHYSICAL = paste0("z_", c("GENDER","DGI", "TUG","FSST")),
   COGNITIVE = paste0("z_", c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")),
+  SPEED = paste0("z_", c("BASE_VELOCITY", "S3_VELOCITY")),
   DEPRESSION = paste0("z_", c("GDS"))
 )
 predictor_category_names <- names(cols_list_for_hierarchical)
@@ -376,21 +395,24 @@ predictor_categories <- rep(names(cols_list_for_hierarchical), times = sapply(co
 names(predictor_categories) <- unlist(cols_list_for_hierarchical)
 predictors_for_hier <- names(predictor_categories)
 
-fall_class_formula <- bf(as.formula(paste("FALLER ~ -1 +", paste(predictors_for_hier, collapse = " + "), 
-                                                                paste("+ (1 + z_BASE_VELOCITY + z_S3_VELOCITY | GENDER)"))), 
+fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors_for_hier, collapse = " + "), 
+                                                                paste("+ (1 + "), paste(predictors_for_hier, collapse = " + "), paste(" | AGE_GROUP)"))), 
                          family = "bernoulli")
 
 
 
 fall_class_priors <- c(
-  prior(normal(0, 1.5), class = "sd"),
-  
+  prior(normal(0, 1), class = "sd"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_S3_VELOCITY"),
   # Other variables - more uncertain
   prior(normal(0, 1), class = "b")
   
 )
 
-fall_class_hierarchical_fit <- brm(
+fall_class_hierarchical_age_fit <- brm(
   formula = fall_class_formula,
   data = data,
   prior = fall_class_priors,
@@ -398,9 +420,57 @@ fall_class_hierarchical_fit <- brm(
 )
 
 
-summary(fall_class_hierarchical_fit)
+summary<-summary(fall_class_hierarchical_age_fit)
+capture.output(summary, file="results/fall_class_hierarchical_age_fit.txt")
+loo_hierarchical <- loo(fall_class_hierarchical_age_fit)
+capture.output(loo_hierarchical, file="results/loo_hierarchical_age.txt")
+print(loo_hierarchical)
 
-loo_hierarchical <- loo(fall_class_hierarchical_fit)
+#----
+#hierarchical by gender ----
+
+cols_list_for_hierarchical <- list(
+    PHYSICAL = paste0("z_", c("AGE","DGI", "TUG","FSST")),
+    COGNITIVE = paste0("z_", c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")),
+    SPEED = paste0("z_", c("BASE_VELOCITY", "S3_VELOCITY")),
+    DEPRESSION = paste0("z_", c("GDS"))
+ )
+predictor_category_names <- names(cols_list_for_hierarchical)
+
+predictor_categories <- rep(names(cols_list_for_hierarchical), times = sapply(cols_list_for_hierarchical, length))
+names(predictor_categories) <- unlist(cols_list_for_hierarchical)
+predictors_for_hier <- names(predictor_categories)
+
+fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors_for_hier, collapse = " + "), 
+                                          paste("+ (1 + "), paste(predictors_for_hier, collapse = " + "), paste(" | GENDER)"))), 
+                         family = "bernoulli")
+
+
+
+fall_class_priors <- c(
+  prior(normal(0, 1), class = "sd"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "sd", group = "GENDER", coef = "z_BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "sd", group = "GENDER", coef = "z_S3_VELOCITY"),
+  # Other variables - more uncertain
+  prior(normal(0, 1), class = "b")
+  
+)
+
+fall_class_hierarchical_gender_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  prior = fall_class_priors,
+  seed = 2024
+)
+
+
+summary(fall_class_hierarchical_gender_fit)
+capture.output(summary, file = "results/fall_class_hierarchical_gender_fit_summary.txt")
+
+loo_hierarchical <- loo(fall_class_hierarchical_gender_fit)
+capture.output(loo_hierarchical, file = "results/loo_hierarchical_gender.txt")
 print(loo_hierarchical)
 
 #----
@@ -443,8 +513,97 @@ loo_hierarchical_depr <- loo(fall_class_hierarchical_depr_fit)
 print(loo_hierarchical_depr)
 
 #----
+#hierarchical model using only speed as parameter, age group hierarchy
+cols_list_speed <- list(
+  SPEED = paste0("z_", c("BASE_VELOCITY", "S3_VELOCITY"))
+)
+predictor_category_names <- names(cols_list_speed)
+
+predictor_categories <- rep(names(cols_list_speed), times = sapply(cols_list_speed, length))
+names(predictor_categories) <- unlist(cols_list_speed)
+predictors_speed <- names(predictor_categories)
+
+fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +",paste(" (1 + "), 
+                                          paste(predictors_speed, collapse = " + "), 
+                                          paste(" | AGE_GROUP)"))), 
+                         family = "bernoulli")
+
+
+
+fall_class_priors <- c(
+  prior(normal(0, 1.5), class = "sd"),
+  prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_S3_VELOCITY"),
+  # Other variables - more uncertain
+  prior(normal(0, 1), class = "Intercept")
+  
+)
+
+fall_class_hierarchical_speed_by_age_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  prior = fall_class_priors,
+  seed = 2024
+)
+
+
+summary<-summary(fall_class_hierarchical_speed_by_age_fit)
+capture.output(summary, file = "results/fall_class_hierarchical_speed_by_age_fit_summary.txt")
+
+loo_hierarchical_speed_by_age <- loo(fall_class_hierarchical_speed_by_age_fit)
+capture.output(loo_hierarchical_speed_by_age, file = "results/loo_hierarchical_speed_by_age.txt")
+
+print(loo_hierarchical_speed_by_age)
+#-----
+#hierarchical by age, only cognition category, using spline
+redictors <- names(predictor_categories[predictor_categories == "COGNITIVE"])
+fall_class_formula <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "), 
+                                          " + s(z_GCS_NEUROTRAX) +s(z_log_TMT_A) + s(z_log_TMT_B)")), 
+                         family = "bernoulli")
+
+
+
+fall_class_priors <- c(
+  prior(normal(0, 1), class = "Intercept"),
+  
+  # Other variables - more uncertain
+  prior(normal(0, 1), class = "b")
+  
+)
+
+fall_class_cognition_spline_fit <- brm(
+  formula = fall_class_formula,
+  data = data,
+  prior = fall_class_priors,
+  seed = 2024
+)
+
+
+summary<-summary(fall_class_cognition_spline_fit)
+capture.output(summary, file = "results/fall_class_cognition_spline_fit_summary.txt")
+loo_cognition_spline <- loo(fall_class_cognition_spline_fit)
+capture.output(loo_cognition_spline, file = "results/loo_cognition_spline.txt")
+print(loo_cognition_spline)
+#projpred variable selection----
+#here validate_search=TRUE, even if it is slower that way. use fall_class_fit (not horseshoe) 
+#because the results looked better (elpd_loo was smaller (-50) than with horseshoe (-49))
+varsel2 <- cv_varsel(fall_class_fit, method='forward', cv_method='loo', validate_search=FALSE)
+plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
+ggsave("plots/fall_variable_selection_prior_0_1.png")
+ggsave("plots/fall_variable_selection_prior_0_5.png")
+nsel<-suggest_size(varsel2)
+(vsel<-solution_terms(varsel2)[1:nsel])
+proj2 <- project(varsel2, nv = nsel, ns = 4000)
+proj2draws <- as.matrix(proj2)
+colnames(proj2draws) <- c("Intercept",vsel)
+round(colMeans(proj2draws),1)
+round(posterior_interval(proj2draws),1)
+
+mcmc_areas(proj2draws, prob = 0.95, prob_outer = 1,
+           pars = c('Intercept', vsel))
+#----
 #plot pp check for all ----
-par(mfrow = c(2, 3))
+
 plot_pp_check(fall_class_fit, names(predictor_categories))
 plot_pp_check(fall_class_horseshoe_fit, names(predictor_categories))
 plot_pp_check(fall_class_fsst_fit, "z_FSST")
