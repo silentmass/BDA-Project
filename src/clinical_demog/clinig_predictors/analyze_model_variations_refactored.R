@@ -97,7 +97,7 @@ data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
 names(data)
 
-data$FALLER <- factor(data$FALLER)
+# data$FALLER <- factor(data$FALLER)
 
 data <- data %>%
   mutate(AGE_GROUP = case_when(
@@ -182,10 +182,44 @@ loo_results[[fit_name]] <- loo(fits[[fit_name]])
 print(fit_name)
 print(loo_results[[fit_name]])
 
+# Physical and Speed ----
+
+selected_categories <- c("PHYSICAL", "SPEED")
+fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
+
+predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+
+all_predictors[[fit_name]] <- predictors
+
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+
+priors[[fit_name]] <- c(
+  # Gait speed - stronger prior based on your data showing clear difference
+  prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
+  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
+  # Other variables - more uncertain
+  prior(normal(0, 1), class = "Intercept"),
+  prior(normal(0, 1), class = "b")
+)
+
+fits[[fit_name]] <- brm(
+  formula = formulas[[fit_name]],
+  data = data,
+  prior = priors[[fit_name]],
+  seed = SEED
+)
+
+summaries[[fit_name]] <- summary(fits[[fit_name]])
+
+loo_results[[fit_name]] <- loo(fits[[fit_name]])
+
+print(fit_name)
+print(loo_results[[fit_name]])
+
 
 # z_FSST only because it was the one selected by cv_varsel ----
 
-fit_name <- "FSST"
+fit_name <- "c-FSST"
 predictors <- c("z_FSST")
 
 all_predictors[[fit_name]] <- predictors
@@ -210,6 +244,7 @@ loo_results[[fit_name]] <- loo(fits[[fit_name]])
 
 print(fit_name)
 print(loo_results[[fit_name]])
+
 
 # Physical ----
 
@@ -241,6 +276,7 @@ loo_results[[fit_name]] <- loo(fits[[fit_name]])
 
 print(fit_name)
 print(loo_results[[fit_name]])
+
 
 # Depression----
 
@@ -290,8 +326,7 @@ priors[[fit_name]] <- c(
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
   prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
   # Other variables - more uncertain
-  prior(normal(0, 1), class = "Intercept"),
-  prior(normal(0, 1), class = "b")
+  prior(normal(0, 1), class = "Intercept")
 )
 
 fits[[fit_name]] <- brm(
@@ -479,10 +514,8 @@ fits[[fit_name]] <- brm(
 )
 
 summaries[[fit_name]] <- summary(fits[[fit_name]])
-save_fit_summary(summaries[[fit_name]], fit_name = fit_name)
 
 loo_results[[fit_name]] <- loo(fits[[fit_name]])
-save_loo_result(loo_results[[fit_name]], fit_name = fit_name)
 
 print(fit_name)
 print(loo_results[[fit_name]])
@@ -614,16 +647,118 @@ fits_theme <- theme(
 # Loop through each fit and create plot
 plots_list <- lapply(names(fits), function(model_name) {
   fit <- fits[[model_name]]
-  # plot_mcmc(fit, model_name, all_predictors[[model_name]])
   pp_check(fit) + 
-    ggtitle(gsub("hierarchical", "h", model_name)) +
+    ggtitle(format_model_name(model_name)) +
     ylim(0, 2.0) +
     theme_minimal() +
     fits_theme
 })
 
 combined_plot <- wrap_plots(plots_list, ncol = 2) + fits_theme
-ggsave(paste0(c("results", "all_pp_checks.png"), collapse = "/"), combined_plot, width = 20, height = 20)
+ggsave(paste0(c("results", "all_pp_checks.png"), collapse = "/"), combined_plot, width = 30, height = 20)
+
+
+# Loop through each fit and create plot
+plots_list <- lapply(names(fits), function(model_name) {
+  fit <- fits[[model_name]]
+  mcmc_area_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "area")
+  mcmc_traces_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "trace")
+  mcmc_intervals_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "interval")
+  
+  ggsave(paste0(c("results", paste0("mcmc-areas_", model_name, ".png")), collapse = "/"), mcmc_area_plot, width = 20, height = 20)
+  ggsave(paste0(c("results", paste0("mcmc-traces_", model_name, ".png")), collapse = "/"), mcmc_traces_plot, width = 20, height = 20)
+  ggsave(paste0(c("results", paste0("mcmc-intervals_", model_name, ".png")), collapse = "/"), mcmc_intervals_plot, width = 20, height = 20)
+})
+
+
+
+# Test Area plot ----
+
+mcmc_fontsize <- 12
+model_name <- "c-PHYSICAL"
+title <- paste0("Posterior Distributions of ", format_model_name(model_name))
+posterior <- as_draws_df(fits[[model_name]])
+mcmc_area_plot <- mcmc_areas(
+  posterior, 
+  pars = generate_pars(model_name, all_predictors[[model_name]])) + 
+  labs(
+    title = title,
+    x = "Standardized Coefficient",
+    y = "Parameter",
+    subtitle = "Shaded areas represent 95% credible intervals"
+  ) + 
+  theme_minimal(base_size = mcmc_fontsize) + 
+  theme(
+    plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
+    axis.text.y = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.text = element_text(size = mcmc_fontsize),
+    legend.text = element_text(size = mcmc_fontsize),
+    legend.title = element_text(size = mcmc_fontsize),
+    plot.background = element_rect(fill = "white", linewidth = 0),
+    aspect.ratio = 1.0,
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50")
+mcmc_area_plot
+
+# Test Traces plot ----
+
+title <- format_model_name(model_name)
+mcmc_traces_plot <- mcmc_trace(
+  posterior,
+  pars = generate_pars(model_name, all_predictors[[model_name]])
+) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "MCMC Chain Traces",
+    x = "Iteration",
+    y = "Parameter Value",
+    subtitle = title
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
+    axis.text.y = element_text(face = "bold"),
+    axis.text.x = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom",
+    plot.background = element_rect(fill = "white", linewidth = 0),
+  ) +
+  facet_wrap(~parameter, ncol = 4)
+mcmc_traces_plot
+
+# Test Intervals plot ----
+title <- paste0("Posterior Intervals of ", format_model_name(model_name))
+mcmc_intervals_plot <- mcmc_intervals(
+  posterior,
+  pars = generate_pars(model_name, all_predictors[[model_name]]),
+) +
+  labs(
+    title = title,
+    subtitle = "95% Credible Intervals",
+    x = "Standardized Effect",
+    y = "Parameter"
+  ) + 
+  theme_minimal(base_size = mcmc_fontsize) + 
+  theme(
+    plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
+    axis.text.y = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.text = element_text(size = mcmc_fontsize),
+    legend.text = element_text(size = mcmc_fontsize),
+    legend.title = element_text(size = mcmc_fontsize),
+    plot.background = element_rect(fill = "white", linewidth = 0),
+    aspect.ratio = 1.0,
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+mcmc_intervals_plot
+
 
 
 # projpred variable selection ----
