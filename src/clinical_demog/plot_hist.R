@@ -41,7 +41,6 @@ for(col in numeric_cols) {
       plot.background = element_rect(fill = "white"),
       legend.background = element_rect(fill = "white")
     ) +
-    scale_fill_manual(values = c("0" = "#2166AC", "1" = "#B2182B")) +
     annotate("text", 
              x = max(data[[col]], na.rm = TRUE),  # Changed to max for right positioning
              y = Inf,
