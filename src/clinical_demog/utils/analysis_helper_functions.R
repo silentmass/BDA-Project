@@ -101,3 +101,17 @@ format_variables <- function(vars, variables_per_line=4) {
   # Join variables in each chunk with commas, then join chunks with newlines
   paste(sapply(chunks, paste, collapse=", "), collapse="\n")
 }
+
+get_predictor_categories_from_cols_list <- function(cols_list) {
+  predictor_categories <- rep(names(cols_list), times = sapply(cols_list, length))
+  names(predictor_categories) <- unlist(cols_list)
+  return(predictor_categories)
+}
+
+save_loo_result <- function(loo_result, fit_name) {
+  capture.output(loo_result[[fit_name]], file=paste0(c("results", paste0(paste0(c("loo-results", fit_name), collapse = "_"), ".txt")), collapse = "/"))
+}
+
+save_fit_summary<- function(fit_summary, fit_name) {
+  capture.output(fit_summary[[fit_name]], file=paste0(c("results", paste0(paste0(c("fit-summary", fit_name), collapse = "_"), ".txt")), collapse = "/"))
+}
