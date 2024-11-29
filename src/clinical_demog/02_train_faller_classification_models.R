@@ -87,9 +87,10 @@ ggplot2::theme_set(ggplot2::theme_minimal())
 SEED = 2024
 
 # Source helper functions ----
+utils_path <- paste0(c("src", "clinical_demog", "utils"), collapse = "/")
 
-source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
-source("src/clinical_demog/utils/analysis_helper_functions.R")
+source(paste0(c(utils_path, "analysis_plotting_helper_functions.R"), collapse = "/"))
+source(paste0(c(utils_path, "analysis_helper_functions.R"), collapse = "/"))
 
 # Load and preview data ----
 
@@ -148,7 +149,12 @@ fits <- list()
 summaries <- list()
 loo_results <- list()
 
-# All categories ----
+
+# Training models ----
+# Running this section trains all the models
+# Remember to save results separately
+
+#### All categories ----
 
 selected_categories <- names(cols_list)
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
@@ -182,7 +188,7 @@ loo_results[[fit_name]] <- loo(fits[[fit_name]])
 print(fit_name)
 print(loo_results[[fit_name]])
 
-# Physical and Speed ----
+#### Physical and Speed ----
 
 selected_categories <- c("PHYSICAL", "SPEED")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
@@ -217,7 +223,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# z_FSST only because it was the one selected by cv_varsel ----
+#### z_FSST only because it was the one selected by cv_varsel ----
 
 fit_name <- "c-FSST"
 predictors <- c("z_FSST")
@@ -246,7 +252,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Physical ----
+#### Physical ----
 
 selected_categories <- c("PHYSICAL")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
@@ -278,7 +284,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Depression----
+#### Depression----
 
 selected_categories <- c("DEPRESSION")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
@@ -310,7 +316,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Speed ----
+#### Speed ----
 
 selected_categories <- c("SPEED")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
@@ -344,7 +350,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Cognitive ----
+#### Cognitive ----
 
 selected_categories <- c("COGNITIVE")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
@@ -376,7 +382,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Cognitive with spline ----
+#### Cognitive with spline ----
 
 selected_categories <- c("COGNITIVE")
 fit_name <- paste0("spline-c-", paste0(selected_categories, collapse = "_"))
@@ -408,7 +414,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Hierarchical by age ----
+#### Hierarchical by age ----
 
 hierarchical_col <- "AGE_GROUP"
 selected_categories <- names(cols_list)
@@ -447,7 +453,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Hierarchical by gender ----
+#### Hierarchical by gender ----
 
 hierarchical_col <- "GENDER"
 selected_categories <- names(cols_list)
@@ -486,7 +492,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Hierarchical by gender, only speed and depression ----
+#### Hierarchical by gender, only speed and depression ----
 
 hierarchical_col <- "GENDER"
 selected_categories <- c("SPEED", "DEPRESSION")
@@ -521,7 +527,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Hierarchical model using only speed as parameter, age group hierarchy ----
+#### Hierarchical model using only speed as parameter, age group hierarchy ----
 
 hierarchical_col <- "AGE_GROUP"
 selected_categories <- c("SPEED")
@@ -556,7 +562,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-# Hierarchical by age, only cognition category, using spline ----
+#### Hierarchical by age, only cognition category, using spline ----
 
 hierarchical_col <- "AGE_GROUP"
 selected_categories <- c("COGNITIVE")
@@ -591,6 +597,11 @@ print(loo_results[[fit_name]])
 
 # Combine result into df and save ----
 
+results_path <- paste0(c("results", "faller_classification"), collapse = "/")
+models_path <- paste0(c("models", "faller_classification"), collapse = "/")
+plots_path <- paste0(c("plots", "faller_classification"), collapse = "/")
+mcmc_path <- paste0(c("plots", "faller_classification", "MCMC"), collapse = "/")
+
 # Extract values
 loo_df <- data.frame(
   model = names(loo_results),
@@ -601,7 +612,7 @@ loo_df <- data.frame(
 )
 
 # Export
-write.csv(loo_df, paste0(c("results", "loo-comparison.csv"), collapse = "/"), row.names = FALSE)
+write.csv(loo_df, paste0(c(results_path, "loo-comparison.csv"), collapse = "/"), row.names = FALSE)
 
 # Save fits
 
@@ -626,11 +637,14 @@ all_coefs <- do.call(rbind, lapply(names(fits), function(model) {
 }))
 
 # Write to CSV
-write.csv(all_coefs, paste0(c("results", "model_coefficients.csv"), collapse = "/"), row.names = FALSE)
-write.csv(model_stats, paste0(c("results", "model_summary.csv"), collapse = "/"), row.names = FALSE)
+write.csv(all_coefs, paste0(c(results_path, "model_coefficients.csv"), collapse = "/"), row.names = FALSE)
+write.csv(model_stats, paste0(c(results_path, "model_summary.csv"), collapse = "/"), row.names = FALSE)
+
+# Save models
+saveRDS(fits, paste0(c(models_path, "faller_classification_models.rds"), collapse = "/"))
+
 
 # Plot fits
-
 
 fits_fontsize <- 16
 
@@ -655,7 +669,7 @@ plots_list <- lapply(names(fits), function(model_name) {
 })
 
 combined_plot <- wrap_plots(plots_list, ncol = 2) + fits_theme
-ggsave(paste0(c("results", "all_pp_checks.png"), collapse = "/"), combined_plot, width = 30, height = 20)
+ggsave(paste0(c(plots_path, "all_pp_checks.png"), collapse = "/"), combined_plot, width = 25, height = 20)
 
 
 # Loop through each fit and create plot
@@ -665,101 +679,10 @@ plots_list <- lapply(names(fits), function(model_name) {
   mcmc_traces_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "trace")
   mcmc_intervals_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "interval")
   
-  ggsave(paste0(c("results", paste0("mcmc-areas_", model_name, ".png")), collapse = "/"), mcmc_area_plot, width = 20, height = 20)
-  ggsave(paste0(c("results", paste0("mcmc-traces_", model_name, ".png")), collapse = "/"), mcmc_traces_plot, width = 20, height = 20)
-  ggsave(paste0(c("results", paste0("mcmc-intervals_", model_name, ".png")), collapse = "/"), mcmc_intervals_plot, width = 20, height = 20)
+  ggsave(paste0(c(mcmc_path, "areas", paste0("areas_", model_name, ".png")), collapse = "/"), mcmc_area_plot, width = 20, height = 20)
+  ggsave(paste0(c(mcmc_path, "traces", paste0("traces_", model_name, ".png")), collapse = "/"), mcmc_traces_plot, width = 20, height = 20)
+  ggsave(paste0(c(mcmc_path, "intervals", paste0("intervals_", model_name, ".png")), collapse = "/"), mcmc_intervals_plot, width = 20, height = 20)
 })
-
-
-
-# Test Area plot ----
-
-mcmc_fontsize <- 12
-model_name <- "c-PHYSICAL"
-title <- paste0("Posterior Distributions of ", format_model_name(model_name))
-posterior <- as_draws_df(fits[[model_name]])
-mcmc_area_plot <- mcmc_areas(
-  posterior, 
-  pars = generate_pars(model_name, all_predictors[[model_name]])) + 
-  labs(
-    title = title,
-    x = "Standardized Coefficient",
-    y = "Parameter",
-    subtitle = "Shaded areas represent 95% credible intervals"
-  ) + 
-  theme_minimal(base_size = mcmc_fontsize) + 
-  theme(
-    plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
-    plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
-    axis.text.y = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    panel.grid.major.y = element_blank(),
-    axis.text = element_text(size = mcmc_fontsize),
-    legend.text = element_text(size = mcmc_fontsize),
-    legend.title = element_text(size = mcmc_fontsize),
-    plot.background = element_rect(fill = "white", linewidth = 0),
-    aspect.ratio = 1.0,
-  ) +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "gray50")
-mcmc_area_plot
-
-# Test Traces plot ----
-
-title <- format_model_name(model_name)
-mcmc_traces_plot <- mcmc_trace(
-  posterior,
-  pars = generate_pars(model_name, all_predictors[[model_name]])
-) +
-  theme_minimal(base_size = 12) +
-  labs(
-    title = "MCMC Chain Traces",
-    x = "Iteration",
-    y = "Parameter Value",
-    subtitle = title
-  ) +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
-    plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
-    axis.text.y = element_text(face = "bold"),
-    axis.text.x = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_blank(),
-    strip.text = element_text(face = "bold"),
-    legend.position = "bottom",
-    plot.background = element_rect(fill = "white", linewidth = 0),
-  ) +
-  facet_wrap(~parameter, ncol = 4)
-mcmc_traces_plot
-
-# Test Intervals plot ----
-title <- paste0("Posterior Intervals of ", format_model_name(model_name))
-mcmc_intervals_plot <- mcmc_intervals(
-  posterior,
-  pars = generate_pars(model_name, all_predictors[[model_name]]),
-) +
-  labs(
-    title = title,
-    subtitle = "95% Credible Intervals",
-    x = "Standardized Effect",
-    y = "Parameter"
-  ) + 
-  theme_minimal(base_size = mcmc_fontsize) + 
-  theme(
-    plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
-    plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
-    axis.text.y = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    panel.grid.major.y = element_blank(),
-    axis.text = element_text(size = mcmc_fontsize),
-    legend.text = element_text(size = mcmc_fontsize),
-    legend.title = element_text(size = mcmc_fontsize),
-    plot.background = element_rect(fill = "white", linewidth = 0),
-    aspect.ratio = 1.0,
-  ) +
-  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
-mcmc_intervals_plot
-
-
 
 # projpred variable selection ----
 
@@ -779,45 +702,3 @@ mcmc_intervals_plot
 # 
 # mcmc_areas(proj2draws, prob = 0.95, prob_outer = 1,
 #            pars = c('Intercept', vsel))
-
-# Plot pp check for all ----
-
-# plot_pp_check(fall_class_fit, names(predictor_categories))
-# plot_pp_check(fall_class_horseshoe_fit, names(predictor_categories))
-# plot_pp_check(fall_class_fsst_fit, "z_FSST")
-# plot_pp_check(fall_class_physical_fit, cols_list$PHYSICAL)
-# plot_pp_check(fall_class_speed_fit, cols_list$SPEED)
-# plot_pp_check(fall_class_cognition_fit, cols_list$COGNITION)
-# plot_pp_check(fall_class_depression_fit, cols_list$DEPRESSION)
-# plot_pp_check(fall_class_hierarchical_fit, predictors_for_hier)
-# plot_pp_check(fall_class_hierarchical_depr_fit, predictors_depr)
-
-# Save results ----
-
-# Extract fixed effects
-# fixed_effects <- fixef(fall_class_fit)
-# fixed_effects_df <- as.data.frame(fixed_effects)
-# 
-# # Add row names as a column
-# fixed_effects_df$Parameter <- rownames(fixed_effects_df)
-# rownames(fixed_effects_df) <- NULL
-# 
-# # Save to CSV
-# write.csv(fixed_effects_df, "results/fall_model_fixed_effects.csv", row.names = FALSE)
-
-# If you want to save random effects (if any):
-# random_effects <- ranef(fall_class_fit)
-# write.csv(as.data.frame(random_effects), "fall_model_random_effects.csv")
-
-# To save the full posterior samples:
-# posterior_samples <- as.data.frame(posterior)
-# write.csv(posterior_samples, "results/fall_model_posterior_samples.csv", row.names = FALSE)
-
-# To save model fit statistics
-# fit_stats <- data.frame(
-#   elpd_loo = loo_result$estimates["elpd_loo", "Estimate"],
-#   se_elpd_loo = loo_result$estimates["elpd_loo", "SE"],
-#   p_loo = loo_result$estimates["p_loo", "Estimate"],
-#   looic = loo_result$estimates["looic", "Estimate"]
-# )
-# write.csv(fit_stats, "results/fall_model_fit_statistics.csv", row.names = FALSE)

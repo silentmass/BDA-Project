@@ -85,8 +85,10 @@ ggplot2::theme_set(ggplot2::theme_minimal())
 
 #########################  Source helper functions ----
 
-source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
-source("src/clinical_demog/utils/analysis_helper_functions.R")
+utils_path <- paste0(c("src", "clinical_demog", "utils"), collapse = "/")
+
+source(paste0(c(utils_path, "analysis_plotting_helper_functions.R"), collapse = "/"))
+source(paste0(c(utils_path, "analysis_helper_functions.R"), collapse = "/"))
 
 
 #########################  Load and preview data ----
