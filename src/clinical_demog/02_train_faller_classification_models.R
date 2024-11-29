@@ -653,7 +653,7 @@ formulas_df <- data.frame(
 )
 
 # Write to CSV
-write.csv(formulas_df, paste0(c(models_path, "model_coefficients.csv"), collapse = "/"), row.names = FALSE)
+write.csv(formulas_df, paste0(c(models_path, "model_coefficients_params.csv"), collapse = "/"), row.names = FALSE)
 
 
 # Plot fits
