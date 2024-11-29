@@ -201,3 +201,90 @@ get_plot_title <- function(model_name, plot_type) {
          "interval" = paste("Posterior Intervals of", abbr_name)
   )
 }
+
+# Code snippets for adjusting MCMC plots
+
+# mcmc_fontsize <- 12
+# model_name <- "c-PHYSICAL"
+# title <- paste0("Posterior Distributions of ", format_model_name(model_name))
+# posterior <- as_draws_df(fits[[model_name]])
+# mcmc_area_plot <- mcmc_areas(
+#   posterior, 
+#   pars = generate_pars(model_name, all_predictors[[model_name]])) + 
+#   labs(
+#     title = title,
+#     x = "Standardized Coefficient",
+#     y = "Parameter",
+#     subtitle = "Shaded areas represent 95% credible intervals"
+#   ) + 
+#   theme_minimal(base_size = mcmc_fontsize) + 
+#   theme(
+#     plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
+#     plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
+#     axis.text.y = element_text(face = "bold"),
+#     panel.grid.minor = element_blank(),
+#     panel.grid.major.y = element_blank(),
+#     axis.text = element_text(size = mcmc_fontsize),
+#     legend.text = element_text(size = mcmc_fontsize),
+#     legend.title = element_text(size = mcmc_fontsize),
+#     plot.background = element_rect(fill = "white", linewidth = 0),
+#     aspect.ratio = 1.0,
+#   ) +
+#   geom_vline(xintercept = 0, linetype = "dashed", color = "gray50")
+# mcmc_area_plot
+# 
+# # Test Traces plot ----
+# 
+# title <- format_model_name(model_name)
+# mcmc_traces_plot <- mcmc_trace(
+#   posterior,
+#   pars = generate_pars(model_name, all_predictors[[model_name]])
+# ) +
+#   theme_minimal(base_size = 12) +
+#   labs(
+#     title = "MCMC Chain Traces",
+#     x = "Iteration",
+#     y = "Parameter Value",
+#     subtitle = title
+#   ) +
+#   theme(
+#     plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
+#     plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
+#     axis.text.y = element_text(face = "bold"),
+#     axis.text.x = element_text(face = "bold"),
+#     panel.grid.minor = element_blank(),
+#     panel.grid.major = element_blank(),
+#     strip.text = element_text(face = "bold"),
+#     legend.position = "bottom",
+#     plot.background = element_rect(fill = "white", linewidth = 0),
+#   ) +
+#   facet_wrap(~parameter, ncol = 4)
+# mcmc_traces_plot
+# 
+# # Test Intervals plot ----
+# title <- paste0("Posterior Intervals of ", format_model_name(model_name))
+# mcmc_intervals_plot <- mcmc_intervals(
+#   posterior,
+#   pars = generate_pars(model_name, all_predictors[[model_name]]),
+# ) +
+#   labs(
+#     title = title,
+#     subtitle = "95% Credible Intervals",
+#     x = "Standardized Effect",
+#     y = "Parameter"
+#   ) + 
+#   theme_minimal(base_size = mcmc_fontsize) + 
+#   theme(
+#     plot.title = element_text(hjust = 0.5, size = mcmc_fontsize, face = "bold"),
+#     plot.subtitle = element_text(hjust = 0.5, size = mcmc_fontsize, color = "gray40"),
+#     axis.text.y = element_text(face = "bold"),
+#     panel.grid.minor = element_blank(),
+#     panel.grid.major.y = element_blank(),
+#     axis.text = element_text(size = mcmc_fontsize),
+#     legend.text = element_text(size = mcmc_fontsize),
+#     legend.title = element_text(size = mcmc_fontsize),
+#     plot.background = element_rect(fill = "white", linewidth = 0),
+#     aspect.ratio = 1.0,
+#   ) +
+#   geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+# mcmc_intervals_plot
