@@ -643,6 +643,18 @@ write.csv(model_stats, paste0(c(results_path, "model_summary.csv"), collapse = "
 # Save models
 saveRDS(fits, paste0(c(models_path, "faller_classification_models.rds"), collapse = "/"))
 
+# For more readable format:
+formulas_df <- data.frame(
+  model = names(formulas),
+  formula = sapply(formulas, function(x) {
+    # Replace long formula with more readable format
+    gsub(" \\+ ", "\n+ ", deparse1(x))
+  })
+)
+
+# Write to CSV
+write.csv(formulas_df, paste0(c(models_path, "model_coefficients.csv"), collapse = "/"), row.names = FALSE)
+
 
 # Plot fits
 
