@@ -90,7 +90,26 @@ ggplot2::theme_set(ggplot2::theme_minimal())
 #### Set SEED ----
 SEED = 2024
 
+fit_prefix <- "faller_classification"
+
+results_path <- paste0(c("results", fit_prefix), collapse = "/")
+models_path <- paste0(c("models", fit_prefix), collapse = "/")
+plots_path <- paste0(c("plots", fit_prefix), collapse = "/")
+mcmc_path <- paste0(c("plots", fit_prefix, "MCMC"), collapse = "/")
+mcmc_areas_path <- paste0(c("plots", fit_prefix, "MCMC", "areas"), collapse = "/")
+mcmc_traces_path <- paste0(c("plots", fit_prefix, "MCMC", "traces"), collapse = "/")
+mcmc_intervals_path <- paste0(c("plots", fit_prefix, "MCMC", "intervals"), collapse = "/")
+
+dir.create(results_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(models_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(plots_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(mcmc_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(mcmc_areas_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(mcmc_traces_path, recursive = TRUE, showWarnings = FALSE)
+dir.create(mcmc_intervals_path, recursive = TRUE, showWarnings = FALSE)
+
 #### Source helper functions ----
+
 utils_path <- paste0(c("src", "clinical_demog", "utils"), collapse = "/")
 
 source(paste0(c(utils_path, "analysis_plotting_helper_functions.R"), collapse = "/"))
@@ -583,11 +602,6 @@ print(loo_results[[fit_name]])
 
 
 # Combine result into df and save ----
-
-results_path <- paste0(c("results", "faller_classification"), collapse = "/")
-models_path <- paste0(c("models", "faller_classification"), collapse = "/")
-plots_path <- paste0(c("plots", "faller_classification"), collapse = "/")
-mcmc_path <- paste0(c("plots", "faller_classification", "MCMC"), collapse = "/")
 
 # Extract values
 loo_df <- data.frame(
