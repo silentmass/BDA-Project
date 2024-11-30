@@ -235,32 +235,7 @@ print(fit_name)
 print(loo_results[[fit_name]])
 
 
-#### z_FSST only because it was the one selected by cv_varsel ----
-
-fit_name <- "c-FSST"
-all_predictors[[fit_name]] <- c("z_FSST")
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
-
-priors[[fit_name]] <- c(
-  prior(normal(0, 1.5), class = "Intercept"),
-  default_prior_b
-)
-
-fits[[fit_name]] <- brm(
-  formula = formulas[[fit_name]],
-  data = data,
-  prior = priors[[fit_name]],
-  seed = SEED
-)
-
-summaries[[fit_name]] <- summary(fits[[fit_name]])
-
-loo_results[[fit_name]] <- loo(fits[[fit_name]])
-
-print(fit_name)
-print(loo_results[[fit_name]])
-
+#----
 
 #### Physical ----
 
@@ -693,19 +668,14 @@ plots_list <- lapply(names(fits), function(model_name) {
 
 # projpred variable selection ----
 
-#here validate_search=TRUE, even if it is slower that way. use fall_class_fit (not horseshoe) 
-#because the results looked better (elpd_loo was smaller (-50) than with horseshoe (-49))
-# varsel2 <- cv_varsel(fall_class_fit, method='forward', cv_method='loo', validate_search=FALSE)
-# plot(varsel2, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
-# ggsave("plots/fall_variable_selection_prior_0_1.png")
+#here validate_search=TRUE, even if it is slower that way. use fit from all parameters, normal(0,1) prior
+#because the results looked better (elpd_loo was best with that prior)
+fitmodel = fits[["c-PHYSICAL_SPEED_COGNITIVE_DEPRESSION"]]
+summary(fitmodel)
+varsel <- cv_varsel(fitmodel, method='forward', cv_method='loo', validate_search=TRUE)
+plot(varsel, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
+ggsave("plots/fall_variable_selection_prior_0_1.png")
 # ggsave("plots/fall_variable_selection_prior_0_5.png")
-# nsel<-suggest_size(varsel2)
-# (vsel<-solution_terms(varsel2)[1:nsel])
-# proj2 <- project(varsel2, nv = nsel, ns = 4000)
-# proj2draws <- as.matrix(proj2)
-# colnames(proj2draws) <- c("Intercept",vsel)
-# round(colMeans(proj2draws),1)
-# round(posterior_interval(proj2draws),1)
-# 
-# mcmc_areas(proj2draws, prob = 0.95, prob_outer = 1,
-#            pars = c('Intercept', vsel))
+nsel<-suggest_size(varsel)
+#-------- 
+
