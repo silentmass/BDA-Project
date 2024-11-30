@@ -1,4 +1,6 @@
-#########################  Load packages and set theme ----
+####### Run full ----
+
+# Load packages and set theme ----
 
 if (!require(tidyverse)) {
   install.packages("tidyverse")
@@ -25,11 +27,6 @@ if (!require(loo)) {
   install.packages("loo")
   library(loo)
 }
-
-# if (!require(ggplot2)) {
-#   install.packages("ggplot2")
-#   library(ggplot2)
-# }
 
 if (!require(moments)) {
   install.packages("moments")
@@ -78,35 +75,38 @@ if(!cmdstan_installed()){
 
 ggplot2::theme_set(ggplot2::theme_minimal())
 
-#########################  Source helper functions ----
+# Source helper functions ----
 
 source("src/clinical_demog/utils/analysis_plotting_helper_functions.R")
 source("src/clinical_demog/utils/analysis_helper_functions.R")
+source("src/clinical_demog/utils/visualize_predictors_helper_functions.R")
 
-
-#########################  Load and preview data ----
+# Load and preview data ----
 
 data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
 names(data)
 
-#########################  Set common theme ----
+# Set common theme and plot -----
 
-fontsize <- 12
+width <- 20
+height <- 6
+
+fontsize <- 11
 common_theme <- theme_minimal() +
   theme(
     text = element_text(size = fontsize),
     axis.title = element_text(size = fontsize),
-    axis.text = element_text(size = 8),
+    axis.text = element_text(size = 10),
     strip.text = element_text(size = fontsize, face = "bold"),
     legend.text = element_text(size = fontsize),
     legend.title = element_text(size = fontsize),
     panel.border = element_rect(color = "grey90", 
                                 fill = NA),
     plot.background = element_rect(fill = "white", linewidth = 0),
-    panel.spacing.x = unit(0.7, "cm"),
-    panel.spacing.y = unit(0.5, "cm"),
-    aspect.ratio = 0.7,
+    panel.spacing.x = unit(0.6, "cm"),
+    panel.spacing.y = unit(0.3, "cm"),
+    aspect.ratio = 0.6,
     strip.text.y = element_text(angle = 0, 
                                 face = "bold", 
                                 size = fontsize,
@@ -115,27 +115,23 @@ common_theme <- theme_minimal() +
   )
 
 
-#########################  Categorize and reshape dataframe for facet plotting ----
+# Categorize and reshape dataframe for facet plotting
 
-# Create the category mapping
-# cols_list <- list(
-#   DEMO = c("AGE", "GENDER"),
-#   BALANCE = c("FSST", "DGI"),
-#   GAIT = c("BASE_VELOCITY", "S3_VELOCITY"),
-#   COGNITIVE = c("GCS_NEUROTRAX", "TMT_A", "TMT_B"),
-#   DEPRESSION = c("GDS")
-# )
+# Set original predictor categories
+physical_cols <- c("AGE", "GENDER", "DGI", "TUG", "FSST")
+speed_cols <- c("BASE_VELOCITY")
+cognitive_cols <- c("GCS_NEUROTRAX", "TMT_B")
+depression_cols <- c("GDS") 
 
-cols_list <- list(
-  PHYSICAL = c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY"),
-  COGNITIVE = c("GCS_NEUROTRAX", "TMT_A", "TMT_B"),
-  DEPRESSION = c("GDS")
+original_cols_list <- list(
+  PHYSICAL = physical_cols,
+  SPEED = speed_cols,
+  COGNITIVE = cognitive_cols,
+  DEPRESSION = depression_cols
 )
-predictor_category_names <- names(cols_list)
 
-predictor_categories <- rep(names(cols_list), times = sapply(cols_list, length))
-names(predictor_categories) <- unlist(cols_list)
-predictors <- names(predictor_categories)
+original_predictor_categories <- get_predictor_categories_from_cols_list(original_cols_list)
+original_predictors <- names(original_predictor_categories)
 
 
 df_long <- data %>%
@@ -145,52 +141,52 @@ df_long <- data %>%
     values_to = "PREDICTOR_VALUE"
   ) %>%
   select(ID, PREDICTOR, PREDICTOR_VALUE, FALLER) %>%
-  mutate(PREDICTOR_CATEGORY = predictor_categories[PREDICTOR])
+  mutate(PREDICTOR_CATEGORY = original_predictor_categories[PREDICTOR])
 
 plot_data <- df_long[!is.na(df_long$PREDICTOR_CATEGORY), ] %>%
   mutate(
     PREDICTOR_CATEGORY = factor(PREDICTOR_CATEGORY, 
-                                levels = predictor_category_names),
+                                levels = names(original_cols_list)),
     PREDICTOR = factor(PREDICTOR,
-                       levels = predictors),
+                       levels = original_predictors),
     FALLER = factor(FALLER)
   )
 
+# Calculate medians per category and predictor
+medians_df <- plot_data %>%
+  group_by(PREDICTOR_CATEGORY, PREDICTOR, FALLER) %>%
+  summarise(median_val = median(PREDICTOR_VALUE, na.rm = TRUE))
+
+# Add to plot
 ggplot(data = plot_data) +
-  geom_point(mapping = aes(x = PREDICTOR_VALUE, y = FALLER, colour = FALLER), size = 3, show.legend = TRUE, alpha = 1/10) +
+  geom_point(mapping = aes(x = PREDICTOR_VALUE, y = FALLER, colour = FALLER), 
+             size = 3, alpha = 1/10) +
+  geom_vline(data = medians_df,
+             aes(xintercept = median_val, color = FALLER),
+             linetype = "dashed") +
   labs(title='Predictors by Category') +
   facet_grid(PREDICTOR_CATEGORY ~ PREDICTOR, 
              switch = 'y', scales = 'free_x') +
   guides(colour = guide_legend(override.aes = list(alpha = 1))) +
   common_theme
   
-ggsave('plots/predictors/predictors.png', width = 20, height = 5)
+ggsave('plots/predictors/predictors_raw.png', width = width, height = height)
 
-######################### Basic distribution checks for TMT_A and TMT_B ----
-
-source("src/test-demos/clinig_predictors/visualize_predictors_helper_functions.R")
-
-# Run the function
-
+# Basic distribution checks for TMT_A and TMT_B
 compare_log_transformed(data, "TMT_A")
 ggsave('plots/predictors/TMT_A.png', width = 20, height = 20)
 compare_log_transformed(data, "TMT_B")
 ggsave('plots/predictors/TMT_B.png', width = 20, height = 20)
 
 
-######################### Log transform and z-score scale and fit  ----
+# Log transform and z-score scale and fit
 
-# Create the category mapping
-cols_list <- list(
-  PHYSICAL = c("GENDER", "DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY"),
-  COGNITIVE = c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B"),
-  DEPRESSION = c("GDS")
-)
-predictor_category_names <- names(cols_list)
-
-predictor_categories <- rep(names(cols_list), times = sapply(cols_list, length))
-names(predictor_categories) <- unlist(cols_list)
-predictors <- names(predictor_categories)
+transformed_predictor_categories <- get_predictor_categories_from_cols_list(list(
+  PHYSICAL = physical_cols,
+  SPEED = speed_cols,
+  COGNITIVE = sub("^(TMT_[AB])", "log_\\1", cognitive_cols),
+  DEPRESSION = depression_cols
+))
 
 # Log transform TMTs
 data$log_TMT_A <- log(data$TMT_A)
@@ -199,19 +195,18 @@ data$log_TMT_B <- log(data$TMT_B)
 # Scale all predictors including log-transformed TMT variables
 # First scale the data as you did
 data_scaled <- data
-data_scaled[paste0("z_", predictors[predictors != "GENDER"])] <- scale(data[predictors[predictors != "GENDER"]])
+data_scaled[paste0("z_", names(transformed_predictor_categories))] <- scale(data[names(transformed_predictor_categories)])
 
 # Create category mapping to take into account scaled predictors
 cols_list <- list(
-  PHYSICAL = c("GENDER", paste0("z_", c("DGI", "FSST", "BASE_VELOCITY", "S3_VELOCITY"))),
-  COGNITIVE = paste0("z_", c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")),
-  DEPRESSION = paste0("z_", c("GDS"))
+  PHYSICAL = paste0("z_", physical_cols),
+  SPEED = paste0("z_", speed_cols),
+  COGNITIVE = paste0("z_", sub("^(TMT_[AB])", "log_\\1", cognitive_cols)),
+  DEPRESSION = paste0("z_", depression_cols)
 )
-predictor_category_names <- names(cols_list)
 
-predictor_categories <- rep(names(cols_list), times = sapply(cols_list, length))
-names(predictor_categories) <- unlist(cols_list)
-predictors <- names(predictor_categories)
+
+predictor_categories <- get_predictor_categories_from_cols_list(cols_list)
 
 
 df_long <- data_scaled %>%
@@ -225,18 +220,23 @@ df_long <- data_scaled %>%
 
 plot_data <- df_long[!is.na(df_long$PREDICTOR_CATEGORY), ] %>%
   mutate(
-    PREDICTOR_CATEGORY = factor(PREDICTOR_CATEGORY, 
-                                levels = predictor_category_names),
-    PREDICTOR = factor(PREDICTOR,
-                       levels = predictors),
+    PREDICTOR_CATEGORY = factor(PREDICTOR_CATEGORY, levels = names(cols_list)),
+    PREDICTOR = factor(PREDICTOR, levels = names(predictor_categories)),
     FALLER = factor(FALLER)
   )
+
+medians_df <- plot_data %>%
+  group_by(PREDICTOR_CATEGORY, PREDICTOR, FALLER) %>%
+  summarise(median_val = median(PREDICTOR_VALUE, na.rm = TRUE))
 
 ggplot(data = plot_data) +
   geom_point(mapping = aes(x = PREDICTOR_VALUE, y = FALLER, colour = FALLER), size = 3, show.legend = TRUE, alpha = 1/10) +
   labs(title='Z-scored Predictors by Category') +
+  geom_vline(data = medians_df,
+             aes(xintercept = median_val, color = FALLER),
+             linetype = "dashed") +
   facet_grid(PREDICTOR_CATEGORY ~ PREDICTOR, 
              switch = 'y') +
   guides(colour = guide_legend(override.aes = list(alpha = 1))) +
   common_theme
-ggsave('plots/predictors/z-scored_predictors.png', width = 20, height = 5)
+ggsave('plots/predictors/z-scored_predictors.png', width = width, height = height)

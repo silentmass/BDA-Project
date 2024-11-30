@@ -1,4 +1,8 @@
-# Load packages and set theme ----
+######## Run full ----
+
+# Init ----
+
+#### Load packages and set theme ----
 
 if (!require(tidyverse)) {
   install.packages("tidyverse")
@@ -83,16 +87,16 @@ if(!cmdstan_installed()){
 
 ggplot2::theme_set(ggplot2::theme_minimal())
 
-# Set SEED ----
+#### Set SEED ----
 SEED = 2024
 
-# Source helper functions ----
+#### Source helper functions ----
 utils_path <- paste0(c("src", "clinical_demog", "utils"), collapse = "/")
 
 source(paste0(c(utils_path, "analysis_plotting_helper_functions.R"), collapse = "/"))
 source(paste0(c(utils_path, "analysis_helper_functions.R"), collapse = "/"))
 
-# Load and preview data ----
+#### Load and preview data ----
 
 data <- readRDS("data/clinical_demog_clean.rds")
 head(data)
@@ -107,36 +111,29 @@ data <- data %>%
     AGE > 80 ~ 3
   ))
 
-# Log transform TMT and z-score scale and fit ----
-
-physical_cols <- c("AGE", "GENDER", "DGI", "TUG", "FSST")
-speed_cols <- c("BASE_VELOCITY", "S3_VELOCITY")
-cognitive_cols <- c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")
-depression_cols <- c("GDS")
-
-original_cols_list <- list(
-  PHYSICAL = physical_cols,
-  SPEED = speed_cols,
-  COGNITIVE = cognitive_cols,
-  DEPRESSION = depression_cols
-)
-
-original_predictor_categories <- get_predictor_categories_from_cols_list(original_cols_list)
-original_predictors <- names(original_predictor_categories)
-
 # Log transform TMTs
 data$log_TMT_A <- log(data$TMT_A)
 data$log_TMT_B <- log(data$TMT_B)
 
+#### Log transform TMT and z-score scale and fit ----
+
+original_cols_list <- list(
+  PHYSICAL = c("AGE", "GENDER", "DGI", "TUG", "FSST"),
+  SPEED = c("BASE_VELOCITY"),
+  COGNITIVE = c("GCS_NEUROTRAX", "log_TMT_B"),
+  DEPRESSION = c("GDS")
+)
+original_predictor_categories <- get_predictor_categories_from_cols_list(original_cols_list)
+
 # Scale all predictors including log-transformed TMT variables
-data[paste0("z_", original_predictors)] <- scale(data[original_predictors]) # Scale also GENDER
+data[paste0("z_", names(original_predictor_categories))] <- scale(data[names(original_predictor_categories)]) # Scale also GENDER
 
 # Scaled predictor names
 cols_list <- list(
-  PHYSICAL = paste0("z_", physical_cols),
-  SPEED = paste0("z_", speed_cols),
-  COGNITIVE = paste0("z_", cognitive_cols),
-  DEPRESSION = paste0("z_", depression_cols)
+  PHYSICAL = paste0("z_", original_cols_list[["PHYSICAL"]]),
+  SPEED = paste0("z_", original_cols_list[["SPEED"]]),
+  COGNITIVE = paste0("z_", original_cols_list[["COGNITIVE"]]),
+  DEPRESSION = paste0("z_", original_cols_list[["DEPRESSION"]])
 )
 
 predictor_categories <- get_predictor_categories_from_cols_list(cols_list)
@@ -159,16 +156,13 @@ loo_results <- list()
 selected_categories <- names(cols_list)
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Gait speed - stronger prior based on your data showing clear difference
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
   # Other variables - more uncertain
   prior(normal(0, 1), class = "Intercept"),
   prior(normal(0, 1), class = "b")
@@ -193,16 +187,13 @@ print(loo_results[[fit_name]])
 selected_categories <- c("PHYSICAL", "SPEED")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Gait speed - stronger prior based on your data showing clear difference
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
   # Other variables - more uncertain
   prior(normal(0, 1), class = "Intercept"),
   prior(normal(0, 1), class = "b")
@@ -226,11 +217,9 @@ print(loo_results[[fit_name]])
 #### z_FSST only because it was the one selected by cv_varsel ----
 
 fit_name <- "c-FSST"
-predictors <- c("z_FSST")
+all_predictors[[fit_name]] <- c("z_FSST")
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   prior(normal(0, 1.5), class = "Intercept"),
@@ -257,11 +246,9 @@ print(loo_results[[fit_name]])
 selected_categories <- c("PHYSICAL")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Other variables - more uncertain
@@ -289,11 +276,9 @@ print(loo_results[[fit_name]])
 selected_categories <- c("DEPRESSION")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Other variables - more uncertain
@@ -321,16 +306,13 @@ print(loo_results[[fit_name]])
 selected_categories <- c("SPEED")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Gait speed - stronger prior based on your data showing clear difference
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
   # Other variables - more uncertain
   prior(normal(0, 1), class = "Intercept")
 )
@@ -355,11 +337,9 @@ print(loo_results[[fit_name]])
 selected_categories <- c("COGNITIVE")
 fit_name <- paste0("c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Other variables - more uncertain
@@ -387,11 +367,13 @@ print(loo_results[[fit_name]])
 selected_categories <- c("COGNITIVE")
 fit_name <- paste0("spline-c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "), paste0(" + s(", paste(predictors, collapse = ") + s("), ")"))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(
+  paste("FALLER ~ 1 +", 
+        paste(all_predictors[[fit_name]], collapse = " + "), 
+        paste0(" + s(", paste(all_predictors[[fit_name]], collapse = ") + s("), ")"))
+), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Other variables - more uncertain
@@ -420,18 +402,18 @@ hierarchical_col <- "AGE_GROUP"
 selected_categories <- names(cols_list)
 fit_name <- paste0(paste0("hierarchical-", hierarchical_col), "-c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "), "+ (1 +", paste(predictors, collapse = " + "), paste0("| ", hierarchical_col, ")"))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(
+  paste("FALLER ~ 1 +", 
+        paste(all_predictors[[fit_name]], collapse = " + "), 
+        "+ (1 +", paste(all_predictors[[fit_name]], collapse = " + "), paste0("| ", hierarchical_col, ")"))
+), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Specific priors first
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
   prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_S3_VELOCITY"),
   # Defaults last
   prior(normal(0, 1), class = "Intercept"),
   prior(normal(0, 1), class = "sd"),
@@ -459,17 +441,17 @@ hierarchical_col <- "GENDER"
 selected_categories <- names(cols_list)
 fit_name <- paste0(paste0("hierarchical-", hierarchical_col), "-c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "), "+ (1 +", paste(predictors, collapse = " + "), paste0("| ", hierarchical_col, ")"))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(
+  paste("FALLER ~ 1 +", 
+        paste(all_predictors[[fit_name]], collapse = " + "), 
+        "+ (1 +", paste(all_predictors[[fit_name]], collapse = " + "), paste0("| ", hierarchical_col, ")"))
+), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "b", coef = "z_S3_VELOCITY"),
   prior(normal(-0.5, 0.5), class = "sd", group = "GENDER", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "sd", group = "GENDER", coef = "z_S3_VELOCITY"),
   # Other variables - more uncertain
   # Defaults last
   prior(normal(0, 1), class = "Intercept"),
@@ -498,11 +480,13 @@ hierarchical_col <- "GENDER"
 selected_categories <- c("SPEED", "DEPRESSION")
 fit_name <- paste0(paste0("hierarchical-", hierarchical_col), "-c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "), "+ (1 +", paste(predictors, collapse = " + "), paste0("| ", hierarchical_col, ")"))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(
+  paste("FALLER ~ 1 +",
+        paste(all_predictors[[fit_name]], collapse = " + "),
+        "+ (1 +", paste(all_predictors[[fit_name]], collapse = " + "), paste0("| ", hierarchical_col, ")"))
+), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Other variables - more uncertain
@@ -533,15 +517,16 @@ hierarchical_col <- "AGE_GROUP"
 selected_categories <- c("SPEED")
 fit_name <- paste0(paste0("hierarchical-", hierarchical_col), "-c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(predictors, collapse = " + "), "+ (1 +", paste(predictors, collapse = " + "), paste0("| ", hierarchical_col, ")"))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(
+  paste("FALLER ~ 1 +", 
+        paste(all_predictors[[fit_name]], collapse = " + "), 
+        "+ (1 +", paste(all_predictors[[fit_name]], collapse = " + "), paste0("| ", hierarchical_col, ")"))
+), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_BASE_VELOCITY"),
-  prior(normal(-0.5, 0.5), class = "sd", group = "AGE_GROUP", coef = "z_S3_VELOCITY"),
   # Other variables - more uncertain
   prior(normal(0, 1), class = "Intercept"),
   prior(normal(0, 1.5), class = "sd")
@@ -568,11 +553,13 @@ hierarchical_col <- "AGE_GROUP"
 selected_categories <- c("COGNITIVE")
 fit_name <- paste0(paste0("hierarchical-", hierarchical_col), "-spline-c-", paste0(selected_categories, collapse = "_"))
 
-predictors <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
+all_predictors[[fit_name]] <- unique(names(predictor_categories[predictor_categories %in% selected_categories]))
 
-all_predictors[[fit_name]] <- predictors
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste0("s(", paste(predictors, collapse = ") + s("), ")"), "+ (1 + ", paste(predictors, collapse = " + "), paste0("| ", hierarchical_col, ")"))), family = "bernoulli")
+formulas[[fit_name]] <- bf(as.formula(
+  paste("FALLER ~ 1 +",
+        paste0("s(", paste(all_predictors[[fit_name]], collapse = ") + s("), ")"),
+        "+ (1 + ", paste(all_predictors[[fit_name]], collapse = " + "), paste0("| ", hierarchical_col, ")"))
+), family = "bernoulli")
 
 priors[[fit_name]] <- c(
   # Other variables - more uncertain
