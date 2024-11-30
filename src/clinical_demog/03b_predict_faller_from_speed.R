@@ -61,8 +61,8 @@ new_data <- expand.grid(
                     length.out = 100)
 )
 
-# Get posterior predictions
-preds <- posterior_predict(fit, newdata = new_data)
+# Get posterior predictions of probabilities
+preds <- posterior_epred(fit, newdata = new_data)
 
 # Calculate summary statistics
 predictions <- data.frame(
@@ -74,11 +74,21 @@ predictions <- data.frame(
   upper = apply(preds, 2, quantile, probs = 0.975)
 )
 
-# Plot
+# Plot with smooth CI region
 ggplot(predictions, aes(x = z_BASE_VELOCITY)) +
-  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
-  geom_line(aes(y = estimate)) +
-  geom_point(data = data, aes(y = FALLER), size = 1) +
-  labs(x = "Velocity",
-       y = "Probability of fall") +
-  theme_minimal()
+  # Add filled area for uncertainty
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = "lightblue", alpha = 0.2) +
+  # Add mean line
+  geom_line(aes(y = estimate), color = "blue", size = 0.8) +
+  # Add original data points
+  geom_point(data = data, aes(y = FALLER), alpha = 0.5, size = 1) +
+  # Scale adjustments
+  scale_y_continuous(limits = c(0, 1)) +
+  # Labels and theme
+  labs(x = "Standardized Walking Velocity",
+       y = "Probability of Fall") +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "white")
+  )
