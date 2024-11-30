@@ -1,0 +1,92 @@
+"model","formula"
+"c-PHYSICAL_SPEED_COGNITIVE_DEPRESSION","structure(list(formula = FALLER ~ 1
++ z_AGE
++ z_GENDER
++ z_DGI
++ z_TUG
++ z_FSST
++ z_BASE_VELOCITY
++ z_GCS_NEUROTRAX
++ z_log_TMT_B
++ z_GDS, pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"c-PHYSICAL_SPEED","structure(list(formula = FALLER ~ 1
++ z_AGE
++ z_GENDER
++ z_DGI
++ z_TUG
++ z_FSST
++ z_BASE_VELOCITY, pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"c-PHYSICAL","structure(list(formula = FALLER ~ 1
++ z_AGE
++ z_GENDER
++ z_DGI
++ z_TUG
++ z_FSST, pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"c-DEPRESSION","structure(list(formula = FALLER ~ 1
++ z_GDS, pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"c-SPEED","structure(list(formula = FALLER ~ 1
++ z_BASE_VELOCITY, pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"c-COGNITIVE","structure(list(formula = FALLER ~ 1
++ z_GCS_NEUROTRAX
++ z_log_TMT_B, pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"spline-c-COGNITIVE","structure(list(formula = FALLER ~ 1
++ z_GCS_NEUROTRAX
++ z_log_TMT_B
++ s(z_GCS_NEUROTRAX)
++ s(z_log_TMT_B), pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"hierarchical-AGE_GROUP-c-PHYSICAL_SPEED_COGNITIVE_DEPRESSION","structure(list(formula = FALLER ~ 1
++ z_AGE
++ z_GENDER
++ z_DGI
++ z_TUG
++ z_FSST
++ z_BASE_VELOCITY
++ z_GCS_NEUROTRAX
++ z_log_TMT_B
++ z_GDS
++ (1
++ z_AGE
++ z_GENDER
++ z_DGI
++ z_TUG
++ z_FSST
++ z_BASE_VELOCITY
++ z_GCS_NEUROTRAX
++ z_log_TMT_B
++ z_GDS | AGE_GROUP), pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"hierarchical-GENDER-c-PHYSICAL_SPEED_COGNITIVE_DEPRESSION","structure(list(formula = FALLER ~ 1
++ z_AGE
++ z_GENDER
++ z_DGI
++ z_TUG
++ z_FSST
++ z_BASE_VELOCITY
++ z_GCS_NEUROTRAX
++ z_log_TMT_B
++ z_GDS
++ (1
++ z_AGE
++ z_GENDER
++ z_DGI
++ z_TUG
++ z_FSST
++ z_BASE_VELOCITY
++ z_GCS_NEUROTRAX
++ z_log_TMT_B
++ z_GDS | GENDER), pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"hierarchical-GENDER-c-SPEED_DEPRESSION","structure(list(formula = FALLER ~ 1
++ z_BASE_VELOCITY
++ z_GDS
++ (1
++ z_BASE_VELOCITY
++ z_GDS | GENDER), pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"hierarchical-AGE_GROUP-c-SPEED","structure(list(formula = FALLER ~ 1
++ z_BASE_VELOCITY
++ (1
++ z_BASE_VELOCITY | AGE_GROUP), pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"
+"hierarchical-AGE_GROUP-spline-c-COGNITIVE","structure(list(formula = FALLER ~ 1
++ s(z_GCS_NEUROTRAX)
++ s(z_log_TMT_B)
++ (1
++ z_GCS_NEUROTRAX
++ z_log_TMT_B | AGE_GROUP), pforms = list(), pfix = list(), family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), resp = ""FALLER""), class = c(""brmsformula"", ""bform""))"

@@ -17,11 +17,13 @@ source(paste0(c(utils_path, "analysis_plotting_helper_functions.R"), collapse = 
 source(paste0(c(utils_path, "analysis_helper_functions.R"), collapse = "/"))
 
 # Load models
-fits <- readRDS("models/faller_classification/faller_classification_models.rds")
+fits <- readRDS("models/faller_classification_normal-prior_0-1/faller_classification_models.rds")
 
-# Load and preview data ----
+#### Load and preview data ----
 
 data <- readRDS("data/clinical_demog_clean.rds")
+head(data)
+names(data)
 
 # data$FALLER <- factor(data$FALLER)
 
@@ -32,36 +34,38 @@ data <- data %>%
     AGE > 80 ~ 3
   ))
 
-# Log transform TMT and z-score scale and fit
-
 # Log transform TMTs
 data$log_TMT_A <- log(data$TMT_A)
 data$log_TMT_B <- log(data$TMT_B)
 
-# Set original predictor categories
-physical_cols <- c("AGE", "GENDER", "DGI", "TUG", "FSST")
-speed_cols <- c("BASE_VELOCITY", "S3_VELOCITY")
-cognitive_cols <- c("GCS_NEUROTRAX", "log_TMT_A", "log_TMT_B")
-depression_cols <- c("GDS")
+#### Log transform TMT and z-score scale and fit ----
 
 original_cols_list <- list(
-  PHYSICAL = physical_cols,
-  SPEED = speed_cols,
-  COGNITIVE = cognitive_cols,
-  DEPRESSION = depression_cols
+  PHYSICAL = c("AGE", "GENDER", "DGI", "TUG", "FSST"),
+  SPEED = c("BASE_VELOCITY"),
+  COGNITIVE = c("GCS_NEUROTRAX", "log_TMT_B"),
+  DEPRESSION = c("GDS")
 )
-
 original_predictor_categories <- get_predictor_categories_from_cols_list(original_cols_list)
-original_predictors <- names(original_predictor_categories)
 
 # Scale all predictors including log-transformed TMT variables
-data[paste0("z_", original_predictors)] <- scale(data[original_predictors]) # Scale also GENDER
+data[paste0("z_", names(original_predictor_categories))] <- scale(data[names(original_predictor_categories)]) # Scale also GENDER
+
+# Scaled predictor names
+cols_list <- list(
+  PHYSICAL = paste0("z_", original_cols_list[["PHYSICAL"]]),
+  SPEED = paste0("z_", original_cols_list[["SPEED"]]),
+  COGNITIVE = paste0("z_", original_cols_list[["COGNITIVE"]]),
+  DEPRESSION = paste0("z_", original_cols_list[["DEPRESSION"]])
+)
+
+predictor_categories <- get_predictor_categories_from_cols_list(cols_list)
 
 # Predict ----
 
 # Prediction function
 predict_faller_status <- function(model, new_data, threshold = 0.5) {
-  predictions <- posterior_predict(model, newdata = new_data, seed)
+  predictions <- posterior_predict(model, newdata = new_data)
   pred_probs <- colMeans(predictions)
   pred_intervals <- apply(predictions, 2, quantile, probs = c(0.025, 0.975))
   
@@ -78,7 +82,6 @@ convert_to_zscores <- function(new_data, reference_data = data) {
   z_scores <- new_data %>%
     mutate(
       # Log transform TMTs first
-      log_TMT_A = log(TMT_A),
       log_TMT_B = log(TMT_B),
       
       # Create z-scores for all variables
@@ -88,8 +91,6 @@ convert_to_zscores <- function(new_data, reference_data = data) {
       z_TUG = scale(TUG, center = mean(reference_data$TUG), scale = sd(reference_data$TUG))[,1],
       z_FSST = scale(FSST, center = mean(reference_data$FSST), scale = sd(reference_data$FSST))[,1],
       z_BASE_VELOCITY = scale(BASE_VELOCITY, center = mean(reference_data$BASE_VELOCITY), scale = sd(reference_data$BASE_VELOCITY))[,1],
-      z_S3_VELOCITY = scale(S3_VELOCITY, center = mean(reference_data$S3_VELOCITY), scale = sd(reference_data$S3_VELOCITY))[,1],
-      z_log_TMT_A = scale(log_TMT_A, center = mean(reference_data$log_TMT_A), scale = sd(reference_data$log_TMT_A))[,1],
       z_log_TMT_B = scale(log_TMT_B, center = mean(reference_data$log_TMT_B), scale = sd(reference_data$log_TMT_B))[,1],
       z_GDS = scale(GDS, center = mean(reference_data$GDS), scale = sd(reference_data$GDS))[,1]
     ) %>%
@@ -106,8 +107,6 @@ new_raw_data <- data.frame(
   TUG = 12,
   FSST = 15,
   BASE_VELOCITY = 1.0,
-  S3_VELOCITY = 0.8,
-  TMT_A = 45,
   TMT_B = 120,
   GDS = 3
 )
@@ -131,8 +130,6 @@ new_person <- data.frame(
   TUG = 12,
   FSST = 15,
   BASE_VELOCITY = 1.0,
-  S3_VELOCITY = 0.8,
-  TMT_A = 45,
   TMT_B = 120,
   GDS = 3
 )
@@ -153,8 +150,6 @@ test_combinations <- function(model, threshold = 0.520125, sample_size = 1000) {
     TUG = seq(8, 16, by = 4),            # Reduced to 3 values
     FSST = seq(10, 20, by = 5),          # Reduced to 3 values
     BASE_VELOCITY = seq(0.8, 1.2, by = 0.2), # Reduced to 3 values
-    S3_VELOCITY = seq(0.6, 1.0, by = 0.2),   # Reduced to 3 values
-    TMT_A = c(40, 50),
     TMT_B = c(110, 130),
     GDS = c(2, 4)
   )
@@ -196,7 +191,7 @@ ggplot(results, aes(x = BASE_VELOCITY, y = FSST)) +
 
 # Boxplots for key metrics
 results_long <- results %>%
-  pivot_longer(c(DGI, TUG, FSST, BASE_VELOCITY, S3_VELOCITY), 
+  pivot_longer(c(DGI, TUG, FSST, BASE_VELOCITY), 
                names_to = "metric", values_to = "value")
 
 # Add faceting to handle different scales appropriately
