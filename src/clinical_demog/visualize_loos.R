@@ -31,7 +31,25 @@ combined_loos <- rbind(
 combined_loos$model <- gsub("c-", "", combined_loos$model)
 combined_loos$model <- gsub("_", " ", combined_loos$model)
 
-# Create plot
+# Add this before the ggplot command:
+model_order <- c(
+  "PHYSICAL SPEED COGNITIVE DEPRESSION",
+  "PHYSICAL SPEED",
+  "PHYSICAL",
+  "SPEED",
+  "COGNITIVE",
+  "spline-COGNITIVE",
+  "DEPRESSION",
+  "hierarchical-AGE GROUP-PHYSICAL SPEED COGNITIVE DEPRESSION",
+  "hierarchical-GENDER-PHYSICAL SPEED COGNITIVE DEPRESSION",
+  "hierarchical-AGE GROUP-SPEED",
+  "hierarchical-GENDER-SPEED DEPRESSION",
+  "hierarchical-AGE GROUP-spline-COGNITIVE"
+)
+
+combined_loos$model <- factor(combined_loos$model, levels = rev(model_order))
+
+# Then your existing ggplot code
 ggplot(combined_loos, aes(x = elpd, y = model, color = prior)) +
   geom_point(position = position_dodge(width = 0.5), size = 3) +
   geom_errorbarh(aes(xmin = elpd - se, xmax = elpd + se),
