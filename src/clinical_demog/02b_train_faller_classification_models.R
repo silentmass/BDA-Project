@@ -92,7 +92,7 @@ SEED = 2024
 
 default_prior_b <- prior(student_t(3, 0, 2.5), class = "b")
 
-fit_prefix <- "faller_classification_student-t-prior"
+fit_prefix <- "faller_classification_student-t-prior_3"
 
 results_path <- paste0(c("results", fit_prefix), collapse = "/")
 models_path <- paste0(c("models", fit_prefix), collapse = "/")
@@ -217,33 +217,6 @@ priors[[fit_name]] <- c(
   prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
   # Other variables - more uncertain
   prior(normal(0, 1), class = "Intercept"),
-  default_prior_b
-)
-
-fits[[fit_name]] <- brm(
-  formula = formulas[[fit_name]],
-  data = data,
-  prior = priors[[fit_name]],
-  seed = SEED
-)
-
-summaries[[fit_name]] <- summary(fits[[fit_name]])
-
-loo_results[[fit_name]] <- loo(fits[[fit_name]])
-
-print(fit_name)
-print(loo_results[[fit_name]])
-
-
-#### z_FSST only because it was the one selected by cv_varsel ----
-
-fit_name <- "c-FSST"
-all_predictors[[fit_name]] <- c("z_FSST")
-
-formulas[[fit_name]] <- bf(as.formula(paste("FALLER ~ 1 +", paste(all_predictors[[fit_name]], collapse = " + "))), family = "bernoulli")
-
-priors[[fit_name]] <- c(
-  prior(normal(0, 1.5), class = "Intercept"),
   default_prior_b
 )
 

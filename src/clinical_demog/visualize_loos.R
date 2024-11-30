@@ -1,20 +1,31 @@
-# load data ----
+######## Run full ----
 
-loos_normal_priors <- read.csv("results/faller_classification/loo-comparison.csv")
-loos_studentt_priors <- read.csv("results/faller_classification_student-t-prior/loo-comparison.csv")
-
-
-# Plot ----
+# Load librariers ----
 library(ggplot2)
 library(tidyr)
 library(dplyr)
 
+# load data ----
+loos_normal_prior_zero_one <- read.csv("results/faller_classification_normal-prior_0-1/loo-comparison.csv")
+loos_normal_prior_zero_five <- read.csv("results/faller_classification_normal-prior_0-5/loo-comparison.csv")
+loos_studentt_prior_three <- read.csv("results/faller_classification_student-t-prior_3/loo-comparison.csv")
+loos_studentt_prior_five <- read.csv("results/faller_classification_student-t-prior_5/loo-comparison.csv")
+
+# Plot ----
+
 # Add identifier column to each dataset
-loos_normal_priors$prior <- "Normal"
-loos_studentt_priors$prior <- "Student-t"
+loos_normal_prior_zero_one$prior <- "Normal_0-1"
+loos_normal_prior_zero_five$prior <- "Normal_0-5"
+loos_studentt_prior_three$prior <- "Student-t_3"
+loos_studentt_prior_five$prior <- "Student-t_5"
 
 # Combine datasets
-combined_loos <- rbind(loos_normal_priors, loos_studentt_priors)
+combined_loos <- rbind(
+  loos_normal_prior_zero_one,
+  loos_normal_prior_zero_five,
+  loos_studentt_prior_three,
+  loos_studentt_prior_five
+)
 
 # Clean model names
 combined_loos$model <- gsub("c-", "", combined_loos$model)
