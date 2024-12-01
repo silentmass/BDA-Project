@@ -933,13 +933,18 @@ post_df <- data.frame(
   model = rep(compared_fits, each = nrow(new_data))
 )
 
-ggplot(post_df, aes(x = velocity, y = probability, color = model)) +
+predict_comp_gender_dep_plot <- ggplot(post_df, aes(x = velocity, y = probability, color = model)) +
   geom_line() +
   ylim(0, 1) +
   labs(x = "Walking Velocity (m/s)",
        y = "Posterior Predicted Probability",
        title = "Posterior Predictions Comparison") +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", linewidth = 0)
+  )
+
+ggsave(paste0(c(plots_path, paste0("predict_comp_gender_dep.png")), collapse = "/"), predict_comp_gender_dep_plot, width = 10, height = 6)
 
 # Extract and compare key parameters
 # Extract parameters correctly
@@ -962,14 +967,20 @@ parameters <- data.frame(
 )
 
 # Create comparison plot
-ggplot(parameters, aes(x = parameter, y = estimate, fill = model)) +
+param_comp_gender_dep_plot <- ggplot(parameters, aes(x = parameter, y = estimate, fill = model)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Parameter Estimates Comparison",
        x = "Parameter",
        y = "Estimate") +
   theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", linewidth = 0)
+  )
   coord_flip()
 
+ggsave(paste0(c(plots_path, paste0("param_comp_gender_dep.png")), collapse = "/"), param_comp_gender_dep_plot, width = 10, height = 6)
+
+# plot age_speed fit ----
 
 new_data <- expand.grid(
   BASE_VELOCITY = seq(from = min(data$BASE_VELOCITY), 
@@ -1009,13 +1020,18 @@ post_df <- data.frame(
   model = rep(compared_fits, each = nrow(new_data))
 )
 
-ggplot(post_df, aes(x = velocity, y = probability, color = model)) +
+predict_comp_age_speed_plot <- ggplot(post_df, aes(x = velocity, y = probability, color = model)) +
   geom_line() +
   ylim(0, 1) +
   labs(x = "Walking Velocity (m/s)",
        y = "Posterior Predicted Probability",
        title = "Posterior Predictions Comparison") +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", linewidth = 0)
+  )
+
+ggsave(paste0(c(plots_path, paste0("predict_comp_age_speed.png")), collapse = "/"), predict_comp_age_speed_plot, width = 10, height = 6)
 
 # Extract and compare key parameters
 # Extract parameters correctly
@@ -1038,15 +1054,20 @@ parameters <- data.frame(
 )
 
 # Create comparison plot
-ggplot(parameters, aes(x = parameter, y = estimate, fill = model)) +
+param_comp_age_speed_plot <- ggplot(parameters, aes(x = parameter, y = estimate, fill = model)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Parameter Estimates Comparison",
        x = "Parameter",
        y = "Estimate") +
   theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", linewidth = 0)
+  )
   coord_flip()
 
-# Plot prediction fit with original data points ----
+ggsave(paste0(c(plots_path, paste0("param_comp_age_speed.png")), collapse = "/"), param_comp_age_speed_plot, width = 10, height = 6)
+
+# Plot prediction fit with predicted data points ----
 
 new_data <- expand.grid(
   BASE_VELOCITY = seq(from = min(data$BASE_VELOCITY), 
@@ -1073,7 +1094,7 @@ scaled_new_data[, cols_to_prefix] <- scale(new_data[, cols_to_prefix])
 # Add z_ prefix to scaled columns
 names(scaled_new_data)[names(scaled_new_data) %in% cols_to_prefix] <- paste0("z_", cols_to_prefix)
 
-fit_name <- "age_speed"
+fit_name <- "age_speed_v2"
 
 fit <- fall_risk_models[[fit_name]]
 
@@ -1087,13 +1108,11 @@ predictions <- data.frame(
   upper = apply(preds_epred, 2, quantile, probs = 0.975)
 )
 
-# Plot ----
-
 preds_binary <- posterior_predict(fit, newdata = scaled_new_data)
 binary_preds <- preds_binary[1,]  # take one draw for binary predictions
 predictions$binary = binary_preds
 
-ggplot(predictions, aes(x = BASE_VELOCITY)) +
+prob_age_speed_plot <- ggplot(predictions, aes(x = BASE_VELOCITY)) +
   # Add probability curves and CI ribbons
   geom_ribbon(aes(ymin = lower, ymax = upper, fill = factor(AGE_GROUP)), alpha = 0.2) +
   geom_line(aes(y = estimate, color = factor(AGE_GROUP))) +
@@ -1111,4 +1130,9 @@ ggplot(predictions, aes(x = BASE_VELOCITY)) +
   ylim(0, 1) +
   labs(x = "Walking Velocity (m/s)",
        y = "Probability of being faller", title = paste0(c(fit_name, "Predicted data"), collapse = " | ")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", linewidth = 0)
+  )
+
+ggsave(paste0(c(plots_path, paste0("prop_", fit_name, ".png")), collapse = "/"), prob_age_speed_plot, width = 10, height = 6)
