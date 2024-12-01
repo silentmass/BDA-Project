@@ -894,6 +894,7 @@ comp <- loo_compare(
 )
 print(comp)
 
+# Plot GENDER_DEP comparisons ----
 
 new_data <- expand.grid(
   BASE_VELOCITY = seq(from = min(data$BASE_VELOCITY), 
@@ -980,7 +981,7 @@ param_comp_gender_dep_plot <- ggplot(parameters, aes(x = parameter, y = estimate
 
 ggsave(paste0(c(plots_path, paste0("param_comp_gender_dep.png")), collapse = "/"), param_comp_gender_dep_plot, width = 10, height = 6)
 
-# plot age_speed fit ----
+# Plot AGE_SPEED comparisons ----
 
 new_data <- expand.grid(
   BASE_VELOCITY = seq(from = min(data$BASE_VELOCITY), 
@@ -1067,7 +1068,7 @@ param_comp_age_speed_plot <- ggplot(parameters, aes(x = parameter, y = estimate,
 
 ggsave(paste0(c(plots_path, paste0("param_comp_age_speed.png")), collapse = "/"), param_comp_age_speed_plot, width = 10, height = 6)
 
-# Plot prediction fit with predicted data points ----
+# Plot AGE_SPEED prediction fit with predicted data points ----
 
 new_data <- expand.grid(
   BASE_VELOCITY = seq(from = min(data$BASE_VELOCITY), 
@@ -1136,3 +1137,74 @@ prob_age_speed_plot <- ggplot(predictions, aes(x = BASE_VELOCITY)) +
   )
 
 ggsave(paste0(c(plots_path, paste0("prop_", fit_name, ".png")), collapse = "/"), prob_age_speed_plot, width = 10, height = 6)
+
+
+# Plot GENDER_DEP prediction fit with predicted data points ----
+
+new_data <- expand.grid(
+  BASE_VELOCITY = seq(from = min(data$BASE_VELOCITY), 
+                      to = max(data$BASE_VELOCITY), 
+                      length.out = 100),
+  GENDER = c(0, 1),
+  GDS = mean(data$GDS)
+)
+
+# Create scaled data frame
+scaled_new_data <- new_data
+
+# Transform TMT_B if it exists
+if ("TMT_B" %in% names(new_data)) {
+  scaled_new_data$TMT_B <- log(new_data$TMT_B)
+}
+
+# Get columns to scale (excluding GENDER and AGE_GROUP)
+cols_to_prefix <- names(new_data)[!names(new_data) %in% c("GENDER", "AGE_GROUP")]
+
+# Scale the selected columns
+scaled_new_data[, cols_to_prefix] <- scale(new_data[, cols_to_prefix])
+
+# Add z_ prefix to scaled columns
+names(scaled_new_data)[names(scaled_new_data) %in% cols_to_prefix] <- paste0("z_", cols_to_prefix)
+
+fit_name <- "gender_dep_v2"
+
+fit <- fall_risk_models[[fit_name]]
+
+# Get predictions
+preds_epred <- posterior_epred(fit, newdata = scaled_new_data)
+
+predictions <- data.frame(
+  new_data,
+  estimate = colMeans(preds_epred),
+  lower = apply(preds_epred, 2, quantile, probs = 0.025),
+  upper = apply(preds_epred, 2, quantile, probs = 0.975)
+)
+
+preds_binary <- posterior_predict(fit, newdata = scaled_new_data)
+binary_preds <- preds_binary[1,]  # take one draw for binary predictions
+predictions$binary = binary_preds
+
+prob_gender_dep_plot <- ggplot(predictions, aes(x = BASE_VELOCITY)) +
+  # Add probability curves and CI ribbons
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = factor(GENDER)), alpha = 0.2) +
+  geom_line(aes(y = estimate, color = factor(GENDER))) +
+  # Add binary predictions as dots
+  geom_dots(data = predictions, 
+            aes(y = binary, x = BASE_VELOCITY, color = factor(GENDER)),
+            side = ifelse(predictions$binary == 1, "top", "bottom"),
+            dotsize = 1.0,
+            pch = 19,
+            alpha = 0.5) +
+  scale_color_discrete(name = "GENDER",
+                       labels = c("0 = male", "1 = female")) +
+  scale_fill_discrete(name = "GENDER",
+                      labels = c("0 = male", "1 = female")) +
+  ylim(0, 1) +
+  labs(x = "Walking Velocity (m/s)",
+       y = "Probability of being faller", title = paste0(c(fit_name, "Predicted data"), collapse = " | ")) +
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "white", linewidth = 0)
+  )
+
+ggsave(paste0(c(plots_path, paste0("prop_", fit_name, ".png")), collapse = "/"), prob_gender_dep_plot, width = 10, height = 6)
