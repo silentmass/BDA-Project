@@ -630,99 +630,138 @@ summary(fit_hier_age_speed_recommended_v3)
 
 all_predictors = list()
 
-fit_recommended <- brm(
+fit_speed_dep_hier_gender <- brm(
   FALLER ~ 1 + z_BASE_VELOCITY + z_GDS + (1 + z_BASE_VELOCITY + z_GDS | GENDER),
   data = data,
-  family = bernoulli(link = "probit"),
+  family = bernoulli(link = "logit"),
   prior = c(
     prior(normal(0, 0.5), class = "Intercept"),
     prior(normal(-0.7, 0.3), class = "b", coef = "z_BASE_VELOCITY"),
     prior(normal(0.3, 0.3), class = "b", coef = "z_GDS"),
-    prior(exponential(3), class = "sd"),
-    prior(lkj_corr_cholesky(4), class = "L")
+    prior(exponential(3), class = "sd")
   ),
   chains = 4,
   iter = 2000,
-  warmup = 1000
+  warmup = 1000,
+  seed = SEED
 )
 
-fit_hier_age_speed_recommended_v3 <- brm(
+summary(fit_speed_dep_hier_gender)
+
+fit_speed_hier_age_group <- brm(
   FALLER ~ 1 + z_BASE_VELOCITY + (1 + z_BASE_VELOCITY | AGE_GROUP),
   data = data,
-  family = bernoulli(link = "probit"),
+  family = bernoulli(link = "logit"),
   prior = c(
     # Keep intercept moderately informative
     prior(normal(0, 0.7), class = "Intercept"),
     # Keep informative prior for base velocity
     prior(normal(-0.7, 0.3), class = "b", coef = "z_BASE_VELOCITY"),
     # Try regularizing gamma prior for SDs
-    prior(gamma(2, 4), class = "sd"),
-    # Stronger prior on correlations
-    prior(lkj_corr_cholesky(5), class = "L")
+    prior(gamma(2, 4), class = "sd")
   ),
   chains = 4,
   iter = 2000,
   warmup = 1000,
+  seed = SEED,
   control = list(
     adapt_delta = 0.99,
     max_treedepth = 15
   )
 )
 
-# Rename existing models
-fit_gender_dep <- fit_recommended
-fit_age_speed <- fit_hier_age_speed_recommended_v3
+summary(fit_speed_hier_age_group)
+
+fit_speed_dep <- brm(
+  FALLER ~ 1 + z_BASE_VELOCITY + z_GDS,
+  data = data,
+  family = bernoulli(link = "logit"),
+  prior = c(
+    prior(normal(0, 0.5), class = "Intercept"),
+    prior(normal(-0.7, 0.3), class = "b", coef = "z_BASE_VELOCITY"),
+    prior(normal(0.3, 0.3), class = "b", coef = "z_GDS")
+  ),
+  chains = 4,
+  iter = 2000,
+  warmup = 1000,
+  seed = SEED
+)
+
+summary(fit_speed_dep)
+
+fit_speed <- brm(
+  FALLER ~ 1 + z_BASE_VELOCITY,
+  data = data,
+  family = bernoulli(link = "logit"),
+  prior = c(
+    # Keep intercept moderately informative
+    prior(normal(0, 0.7), class = "Intercept"),
+    # Keep informative prior for base velocity
+    prior(normal(-0.7, 0.3), class = "b", coef = "z_BASE_VELOCITY")
+  ),
+  chains = 4,
+  iter = 2000,
+  warmup = 1000,
+  seed = SEED
+)
+
+summary(fit_speed)
 
 # New version of gender+depression model with different priors
-fit_gender_dep_v2 <- brm(
+fit_speed_dep_hier_gender_v2 <- brm(
   FALLER ~ 1 + z_BASE_VELOCITY + z_GDS + (1 + z_BASE_VELOCITY + z_GDS | GENDER),
   data = data,
-  family = bernoulli(link = "probit"),
+  family = bernoulli(link = "logit"),
   prior = c(
     prior(normal(0, 0.7), class = "Intercept"),
     prior(normal(-0.5, 0.4), class = "b", coef = "z_BASE_VELOCITY"),
     prior(normal(0.2, 0.4), class = "b", coef = "z_GDS"),
-    prior(gamma(3, 3), class = "sd"),  # Different shape for variance components
-    prior(lkj_corr_cholesky(3), class = "L")  # Less restrictive correlation prior
+    prior(gamma(3, 3), class = "sd")  # Different shape for variance components
   ),
   chains = 4,
   iter = 2000,
   warmup = 1000,
-  control = list(adapt_delta = 0.95)
+  seed = SEED
 )
 
-summary(fit_gender_dep_v2)
+summary(fit_speed_dep_hier_gender_v2)
 
 # New version of age+speed model with different priors
-fit_age_speed_v2 <- brm(
+fit_speed_hier_age_group_v2 <- brm(
   FALLER ~ 1 + z_BASE_VELOCITY + (1 + z_BASE_VELOCITY | AGE_GROUP),
   data = data,
-  family = bernoulli(link = "probit"),
+  family = bernoulli(link = "logit"),
   prior = c(
     prior(normal(0, 0.5), class = "Intercept"),
     prior(normal(-0.6, 0.4), class = "b", coef = "z_BASE_VELOCITY"),
-    prior(student_t(3, 0, 0.5), class = "sd", lb = 0),  # Try student_t instead of gamma
-    prior(lkj_corr_cholesky(3), class = "L")
+    prior(student_t(3, 0, 0.5), class = "sd", lb = 0)  # Try student_t instead of gamma
   ),
   chains = 4,
   iter = 2000,
   warmup = 1000,
-  control = list(adapt_delta = 0.95)
+  seed = SEED
 )
 
-summary(fit_age_speed_v2)
+summary(fit_speed_hier_age_group_v2)
 
-all_predictors[["fit_gender_dep"]] <- c("z_BASE_VELOCITY", "z_GDS")
-all_predictors[["fit_gender_dep_v2"]] <- c("z_BASE_VELOCITY", "z_GDS")
-all_predictors[["fit_age_speed"]] <- c("z_BASE_VELOCITY")
-all_predictors[["fit_age_speed_v2"]] <- c("z_BASE_VELOCITY")
+loo_compare(
+  loo(fit_speed_dep_hier_gender),
+  loo(fit_speed_hier_age_group),
+  loo(fit_speed_dep),
+  loo(fit_speed),
+  loo(fit_speed_dep_hier_gender_v2),
+  loo(fit_speed_hier_age_group_v2)
+)
+
 
 # Combine all models into list
 fits <- list(
-  gender_dep = fit_gender_dep,
-  gender_dep_v2 = fit_gender_dep_v2, 
-  age_speed = fit_age_speed,
-  age_speed_v2 = fit_age_speed_v2
+  speed_dep_hier_gender = fit_speed_dep_hier_gender,
+  speed_hier_age_group = fit_speed_hier_age_group, 
+  speed_dep = fit_speed_dep,
+  speed = fit_speed,
+  speed_dep_hier_gender_v2 = fit_speed_dep_hier_gender_v2,
+  speed_hier_age_group_v2 = fit_speed_hier_age_group_v2
 )
 
 get_prior_info <- function(fit, model_name) {
@@ -738,10 +777,12 @@ prior_df <- do.call(rbind,
                         names(fits)))
 
 loo_results <- list(
-  gender_dep = loo(fit_gender_dep),
-  gender_dep_v2 = loo(fit_gender_dep_v2), 
-  age_speed = loo(fit_age_speed),
-  age_speed_v2 = loo(fit_age_speed_v2)
+  speed_dep_hier_gender = loo(fit_speed_dep_hier_gender),
+  speed_hier_age_group = loo(fit_speed_hier_age_group), 
+  speed_dep = loo(fit_speed_dep),
+  speed = loo(fit_speed),
+  speed_dep_hier_gender_v2 = loo(fit_speed_dep_hier_gender_v2),
+  speed_hier_age_group_v2 = loo(fit_speed_hier_age_group_v2)
 )
 
 # Extract values
@@ -774,10 +815,12 @@ all_coefs <- do.call(rbind, lapply(names(fits), function(model) {
 }))
 
 formulas <- list(
-  gender_dep = formula(fit_gender_dep),
-  gender_dep_v2 = formula(fit_gender_dep_v2), 
-  age_speed = formula(fit_age_speed),
-  age_speed_v2 = formula(fit_age_speed_v2)
+  speed_dep_hier_gender = formula(fit_speed_dep_hier_gender),
+  speed_hier_age_group = formula(fit_speed_hier_age_group), 
+  speed_dep = formula(fit_speed_dep),
+  speed = formula(fit_speed),
+  speed_dep_hier_gender_v2 = formula(fit_speed_dep_hier_gender_v2),
+  speed_hier_age_group_v2 = formula(fit_speed_hier_age_group_v2)
 )
 
 # For more readable format:
@@ -821,65 +864,6 @@ plots_list <- lapply(names(fits), function(model_name) {
 
 combined_plot <- wrap_plots(plots_list, ncol = 2) + fits_theme
 ggsave(paste0(c(plots_path, "all_pp_checks.png"), collapse = "/"), combined_plot, width = 25, height = 20)
-
-fontsize = 14
-base_theme <- theme_minimal(base_size = fontsize) +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = fontsize, face = "bold"),
-    plot.subtitle = element_text(hjust = 0.5, size = fontsize, color = "gray40"),
-    axis.text.y = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
-    panel.grid.major.y = element_blank(),
-    axis.text = element_text(size = fontsize),
-    legend.text = element_text(size = fontsize),
-    legend.title = element_text(size = fontsize),
-    plot.background = element_rect(fill = "white", linewidth = 0)
-  )
-
-# Loop through each fit and create plot
-plots_list <- lapply(names(fits), function(model_name) {
-  fit <- fits[[model_name]]
-  mcmc_area_plot <- mcmc_areas(fit) +
-    labs(
-      title = model_name,
-      x = "Standardized Coefficient",
-      y = "Parameter",
-      subtitle = "Shaded areas represent 95% credible intervals"
-    ) +
-    base_theme
-  mcmc_traces_plot <- mcmc_trace(fit) +
-    labs(
-      title = "MCMC Chain Traces",
-      x = "Iteration",
-      y = "Parameter Value",
-      subtitle = model_name
-    ) +
-    base_theme +
-    theme(
-      panel.grid.major = element_blank(),
-      strip.text = element_text(face = "bold"),
-      legend.position = "bottom"
-    ) +
-    facet_wrap(~parameter, ncol = 4)
-  mcmc_intervals_plot <- mcmc_intervals(fit) +
-    labs(
-      title = model_name,
-      subtitle = "95% Credible Intervals",
-      x = "Standardized Effect",
-      y = "Parameter"
-    ) +
-    base_theme
-  
-  # mcmc_area_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "area")
-  # mcmc_traces_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "trace")
-  # mcmc_intervals_plot <- plot_mcmc(fit, model_name, all_predictors[[model_name]], "interval")
-  
-  ggsave(paste0(c(mcmc_path, "areas", paste0("areas_", model_name, ".png")), collapse = "/"), mcmc_area_plot, width = 20, height = 20)
-  ggsave(paste0(c(mcmc_path, "traces", paste0("traces_", model_name, ".png")), collapse = "/"), mcmc_traces_plot, width = 20, height = 20)
-  ggsave(paste0(c(mcmc_path, "intervals", paste0("intervals_", model_name, ".png")), collapse = "/"), mcmc_intervals_plot, width = 20, height = 20)
-  return(list(name=model_name, area=mcmc_area_plot, traces=mcmc_traces_plot, intervals=mcmc_intervals_plot))
-})
-
 
 
 # Compare models ----

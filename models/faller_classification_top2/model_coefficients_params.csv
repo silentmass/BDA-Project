@@ -1,21 +1,26 @@
 "model","formula"
-"gender_dep","structure(list(formula = FALLER ~ 1
+"speed_dep_hier_gender","structure(list(formula = FALLER ~ 1
 + z_BASE_VELOCITY
 + z_GDS
 + (1
 + z_BASE_VELOCITY
-+ z_GDS | GENDER), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""probit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
-"gender_dep_v2","structure(list(formula = FALLER ~ 1
++ z_GDS | GENDER), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
+"speed_hier_age_group","structure(list(formula = FALLER ~ 1
++ z_BASE_VELOCITY
++ (1
++ z_BASE_VELOCITY | AGE_GROUP), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
+"speed_dep","structure(list(formula = FALLER ~ 1
++ z_BASE_VELOCITY
++ z_GDS, pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
+"speed","structure(list(formula = FALLER ~ 1
++ z_BASE_VELOCITY, pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
+"speed_dep_hier_gender_v2","structure(list(formula = FALLER ~ 1
 + z_BASE_VELOCITY
 + z_GDS
 + (1
 + z_BASE_VELOCITY
-+ z_GDS | GENDER), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""probit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
-"age_speed","structure(list(formula = FALLER ~ 1
++ z_GDS | GENDER), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
+"speed_hier_age_group_v2","structure(list(formula = FALLER ~ 1
 + z_BASE_VELOCITY
 + (1
-+ z_BASE_VELOCITY | AGE_GROUP), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""probit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
-"age_speed_v2","structure(list(formula = FALLER ~ 1
-+ z_BASE_VELOCITY
-+ (1
-+ z_BASE_VELOCITY | AGE_GROUP), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""probit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"
++ z_BASE_VELOCITY | AGE_GROUP), pforms = list(), pfix = list(), resp = ""FALLER"", family = structure(list(family = ""bernoulli"", link = ""logit"", linkfun = function (mu)  link(mu, link = slink), linkinv = function (eta)  inv_link(eta, link = slink), dpars = ""mu"", type = ""int"", ybounds = c(0, 1), closed = c(TRUE, TRUE), ad = c(""weights"", ""subset"", ""index""), specials = c(""binary"", ""sbi_logit"")), class = c(""brmsfamily"", ""family"")), mecor = TRUE), class = c(""brmsformula"", ""bform""))"

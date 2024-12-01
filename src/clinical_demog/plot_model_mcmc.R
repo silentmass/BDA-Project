@@ -103,7 +103,7 @@ SEED = 2024
 set.seed(SEED)
 
 
-# Source helper functions ----
+#### Source helper functions ----
 utils_path <- paste0(c("src", "clinical_demog", "utils"), collapse = "/")
 
 source(paste0(c(utils_path, "analysis_plotting_helper_functions.R"), collapse = "/"))
@@ -115,21 +115,29 @@ fits <- readRDS("models/faller_classification_top2/faller_classification_models.
 # PLot MCMC ----
 
 pars <- list(
-  gender_dep = c(
+  speed = c(
     "b_Intercept", 
-    "b_z_BASE_VELOCITY", 
-    "b_z_GDS", 
-    "r_GENDER[0,Intercept]",
-    "r_GENDER[1,Intercept]",
-    "r_GENDER[0,z_BASE_VELOCITY]",
-    "r_GENDER[1,z_BASE_VELOCITY]",
-    "r_GENDER[0,z_GDS]",
-    "r_GENDER[1,z_GDS]"
+    "b_z_BASE_VELOCITY"
   ),  # Note the escaped bracket
-  gender_dep_v2 = c(
+  speed_dep = c(
     "b_Intercept", 
     "b_z_BASE_VELOCITY", 
-    "b_z_GDS", 
+    "b_z_GDS"
+  ),
+  speed_hier_age_group = c(
+    "b_Intercept", 
+    "b_z_BASE_VELOCITY", 
+    "r_AGE_GROUP[1,Intercept]",
+    "r_AGE_GROUP[2,Intercept]",
+    "r_AGE_GROUP[3,Intercept]",
+    "r_AGE_GROUP[1,z_BASE_VELOCITY]",
+    "r_AGE_GROUP[2,z_BASE_VELOCITY]",
+    "r_AGE_GROUP[3,z_BASE_VELOCITY]"
+  ),
+  speed_dep_hier_gender = c(
+    "b_Intercept", 
+    "b_z_BASE_VELOCITY",
+    "b_z_GDS",
     "r_GENDER[0,Intercept]",
     "r_GENDER[1,Intercept]",
     "r_GENDER[0,z_BASE_VELOCITY]",
@@ -137,7 +145,7 @@ pars <- list(
     "r_GENDER[0,z_GDS]",
     "r_GENDER[1,z_GDS]"
   ),
-  age_speed = c(
+  speed_hier_age_group_v2 = c(
     "b_Intercept", 
     "b_z_BASE_VELOCITY", 
     "r_AGE_GROUP[1,Intercept]",
@@ -147,15 +155,16 @@ pars <- list(
     "r_AGE_GROUP[2,z_BASE_VELOCITY]",
     "r_AGE_GROUP[3,z_BASE_VELOCITY]"
   ),
-  age_speed_v2 = c(
+  speed_dep_hier_gender_v2 = c(
     "b_Intercept", 
-    "b_z_BASE_VELOCITY", 
-    "r_AGE_GROUP[1,Intercept]",
-    "r_AGE_GROUP[2,Intercept]",
-    "r_AGE_GROUP[3,Intercept]",
-    "r_AGE_GROUP[1,z_BASE_VELOCITY]",
-    "r_AGE_GROUP[2,z_BASE_VELOCITY]",
-    "r_AGE_GROUP[3,z_BASE_VELOCITY]"
+    "b_z_BASE_VELOCITY",
+    "b_z_GDS",
+    "r_GENDER[0,Intercept]",
+    "r_GENDER[1,Intercept]",
+    "r_GENDER[0,z_BASE_VELOCITY]",
+    "r_GENDER[1,z_BASE_VELOCITY]",
+    "r_GENDER[0,z_GDS]",
+    "r_GENDER[1,z_GDS]"
   )
 )
 
