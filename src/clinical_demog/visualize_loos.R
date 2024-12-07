@@ -51,13 +51,7 @@ combined_loos$model <- factor(combined_loos$model, levels = rev(model_order))
 
 # Define selected models
 selected_models <- c(
-  "PHYSICAL SPEED COGNITIVE DEPRESSION",
-  "SPEED",
-  "DEPRESSION",
-  "hierarchical-AGE GROUP-PHYSICAL SPEED COGNITIVE DEPRESSION",
-  "hierarchical-GENDER-PHYSICAL SPEED COGNITIVE DEPRESSION",
-  "hierarchical-AGE GROUP-SPEED",
-  "hierarchical-GENDER-SPEED DEPRESSION"
+  "PHYSICAL SPEED COGNITIVE DEPRESSION"
 )
 
 # Filter the dataframe for selected models
