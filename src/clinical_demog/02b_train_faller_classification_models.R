@@ -667,10 +667,191 @@ plots_list <- lapply(names(fits), function(model_name) {
 })
 
 # projpred variable selection ----
-
+SEED = 2024
+fitmodel <- brm(
+  FALLER ~ 1 + z_AGE + z_GENDER + z_DGI + z_TUG + 
+    z_FSST + z_BASE_VELOCITY + z_GCS_NEUROTRAX + z_log_TMT_B + z_GDS ,
+  data = data,
+  family = bernoulli(link = "logit"),
+  prior = c(
+    prior(normal(0, 1), class = "Intercept"),
+    prior(normal(-0.5, 0.5), class = "b", coef = "z_BASE_VELOCITY"),
+    prior(normal(0, 1), class = "b")
+    ),
+  chains = 4, iter = 2000, warmup = 1000, seed = SEED)
 #here validate_search=TRUE, even if it is slower that way. use fit from all parameters, normal(0,1) prior
 #because the results looked better (elpd_loo was best with that prior)
 fitmodel = fits[["c-PHYSICAL_SPEED_COGNITIVE_DEPRESSION"]]
+summary(fitmodel)
+check_convergence(fitmodel)
+
+summary(fitmodel)
+posterior_preds <- posterior_predict(fitmodel)
+predicted_probs <- colMeans(posterior_preds)
+data$lower_bound <- apply(posterior_preds, 2, quantile, probs = 0.025)
+data$upper_bound <- apply(posterior_preds, 2, quantile,probs=0.975)
+data$predicted_probs <- predicted_probs
+ggplot(data, aes(x = predicted_probs, y = FALLER)) +
+  geom_jitter(width = 0.02, height = 0.02, alpha = 0.6) +  # Jitter for better visibility
+  geom_line(aes(y = colMeans(post_pred)), color = "blue") +
+  labs(
+    x = "Predicted Probability",
+    y = "Observed FALLER (0 or 1)",
+    title = "Posterior Predictive Check"
+  ) +
+  theme_minimal()+
+theme(
+    text = element_text(size = 14),  # Increase font size to 14
+    axis.title = element_text(size = 12),  # Increase axis title font size to 12
+    plot.title = element_text(size = 16)  # Increase plot title font size to 16
+)
+posterior_preds <- posterior_predict(fitmodel)
+posterior_epred <- posterior_epred(fitmodel, newdata = data)
+data$lower_bound <- apply(posterior_epred, 2, quantile, probs = 0.025)
+data$upper_bound <- apply(posterior_epred, 2, quantile,probs=0.975)
+predicted_probs <- colMeans(posterior_preds)
+data$predicted_probs <- predicted_probs
+ggplot(data, aes(x = predicted_probs, y = FALLER)) +
+  geom_ribbon(aes(ymin = lower_bound, ymax = upper_bound), 
+              alpha = 0.2, fill = "blue") +  # Add uncertainty ribbon
+  geom_jitter(width = 0.02, height = 0.02, alpha = 0.6) +  # Jitter for better visibility
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+              se = FALSE, color = "blue") +  # Logistic curve
+  labs(
+    x = "Predicted Probability",
+    y = "Observed FALLER (0 or 1)",
+    title = "Posterior Predictive Check with Uncertainty"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),  # Increase font size to 14
+    axis.title = element_text(size = 12),  # Increase axis title font size to 12
+    plot.title = element_text(size = 16)  # Increase plot title font size to 16
+  )
+posterior_linpred(fitmodel)
+pp_check(fitmodel, type = "bars")
+varsel <- cv_varsel(fitmodel, method='forward', cv_method='loo', validate_search=TRUE)
+plot(varsel, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
+ggsave("plots/fall_variable_selection_prior_0_1.png")
+# ggsave("plots/fall_variable_selection_prior_0_5.png")
+nsel<-suggest_size(varsel)
+#----
+####variable selection with the newest models ----
+fitmodel = faller_classification_models$speed
+posterior_preds <- posterior_predict(fitmodel)
+posterior_epred <- posterior_epred(fitmodel, newdata = data)
+data$lower_bound <- apply(posterior_epred, 2, quantile, probs = 0.025)
+data$upper_bound <- apply(posterior_epred, 2, quantile,probs=0.975)
+predicted_probs <- colMeans(posterior_preds)
+data$predicted_probs <- predicted_probs
+ggplot(data, aes(x = predicted_probs, y = FALLER)) +
+  geom_ribbon(aes(ymin = lower_bound, ymax = upper_bound), 
+              alpha = 0.2, fill = "blue") +  # Add uncertainty ribbon
+  geom_jitter(width = 0.02, height = 0.02, alpha = 0.6) +  # Jitter for better visibility
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+              se = FALSE, color = "blue") +  # Logistic curve
+  labs(
+    x = "Predicted Probability",
+    y = "Observed FALLER (0 or 1)",
+    title = "Posterior Predictive Check with Uncertainty"
+  ) +
+  theme_minimal()
+
+fitmodel = faller_classification_models$speed_hier_age_group_v2
+posterior_preds <- posterior_predict(fitmodel)
+posterior_epred <- posterior_epred(fitmodel, newdata = data)
+data$lower_bound <- apply(posterior_epred, 2, quantile, probs = 0.025)
+data$upper_bound <- apply(posterior_epred, 2, quantile,probs=0.975)
+predicted_probs <- colMeans(posterior_preds)
+data$predicted_probs <- predicted_probs
+ggplot(data, aes(x = predicted_probs, y = FALLER)) +
+  geom_ribbon(aes(ymin = pred_lower, ymax = pred_upper), 
+              alpha = 0.2, fill = "blue") +
+  geom_jitter(width = 0.02, height = 0.02, alpha = 0.6) +  # Jitter for better visibility
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+              se = FALSE, color = "blue") +  # Logistic curve
+  labs(
+    x = "Predicted Probability",
+    y = "Observed FALLER (0 or 1)",
+    title = "Posterior Predictive Check with Uncertainty"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),  # Increase font size to 14
+    axis.title = element_text(size = 12),  # Increase axis title font size to 12
+    plot.title = element_text(size = 16)  # Increase plot title font size to 16
+  )
+
+fitmodel = faller_classification_models$speed_dep_hier_gender_v2
+posterior_preds <- posterior_predict(fitmodel)
+posterior_epred <- posterior_epred(fitmodel, newdata = data)
+data$lower_bound <- apply(posterior_epred, 2, quantile, probs = 0.025)
+data$upper_bound <- apply(posterior_epred, 2, quantile,probs=0.975)
+predicted_probs <- colMeans(posterior_preds)
+data$predicted_probs <- predicted_probs
+ggplot(data, aes(x = predicted_probs, y = FALLER)) +
+  geom_ribbon(aes(ymin = pred_lower, ymax = pred_upper), 
+              alpha = 0.2, fill = "blue") +
+  geom_jitter(width = 0.02, height = 0.02, alpha = 0.6) +  # Jitter for better visibility
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+              se = FALSE, color = "blue") +  # Logistic curve
+  labs(
+    x = "Predicted Probability",
+    y = "Observed FALLER (0 or 1)",
+    title = "Posterior Predictive Check with Uncertainty"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),  # Increase font size to 14
+    axis.title = element_text(size = 12),  # Increase axis title font size to 12
+    plot.title = element_text(size = 16)  # Increase plot title font size to 16
+  )
+post_pred <- posterior_predict(fitmodel, newdata = data)
+posterior_epred <- posterior_epred(fitmodel, newdata = data)
+
+# Calculate 95% credible intervals
+pred_lower <- apply(posterior_epred, 2, quantile, 0.025)
+pred_upper <- apply(posterior_epred, 2, quantile, 0.975)
+
+# Plot posterior predictive check
+ggplot(data, aes(x = predicted_probs, y = FALLER)) +
+  geom_point(alpha = 0.6) +
+  geom_ribbon(aes(ymin = pred_lower, ymax = pred_upper), 
+              alpha = 0.2, fill = "blue") +
+  geom_line(aes(y = colMeans(post_pred)), color = "blue") +
+  labs(
+    x = "Predicted Probability",
+    y = "Observed FALLER (0 or 1)", 
+    title = "Hierarchical Model Posterior Predictive Check"
+  ) +
+  theme_minimal()
+
+fitmodel = faller_classification_models$speed_dep
+posterior_preds <- posterior_predict(fitmodel)
+posterior_epred <- posterior_epred(fitmodel, newdata = data)
+data$lower_bound <- apply(posterior_epred, 2, quantile, probs = 0.025)
+data$upper_bound <- apply(posterior_epred, 2, quantile,probs=0.975)
+predicted_probs <- colMeans(posterior_preds)
+data$predicted_probs <- predicted_probs
+ggplot(data, aes(x = predicted_probs, y = FALLER)) +
+  geom_ribbon(aes(ymin = pred_lower, ymax = pred_upper), 
+              alpha = 0.2, fill = "blue") +
+  geom_jitter(width = 0.02, height = 0.02, alpha = 0.6) +  # Jitter for better visibility
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+              se = FALSE, color = "blue") +  # Logistic curve
+  labs(
+    x = "Predicted Probability",
+    y = "Observed FALLER (0 or 1)",
+    title = "Posterior Predictive Check with Uncertainty"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),  # Increase font size to 14
+    axis.title = element_text(size = 12),  # Increase axis title font size to 12
+    plot.title = element_text(size = 16)  # Increase plot title font size to 16
+  )
+# Caterpillar plot for group-level effects
+plot(model, ask = FALSE)
 summary(fitmodel)
 varsel <- cv_varsel(fitmodel, method='forward', cv_method='loo', validate_search=TRUE)
 plot(varsel, stats = c('elpd', 'pctcorr'), deltas=FALSE, text_angle = 45)
